@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { Bar, CreditCard, DollarSign, Users } from 'lucide-react';
+import { BarChart, CreditCard, DollarSign, Users } from 'lucide-react';
 import MainLayout from '@/components/layout/MainLayout';
 import StatCard from '@/components/dashboard/StatCard';
 import TaskList from '@/components/dashboard/TaskList';
@@ -86,7 +86,7 @@ const Dashboard = () => {
           <StatCard 
             title="Overdue Amount" 
             value={`$${(totalOverdueAmount / 1000000).toFixed(1)}M`}
-            icon={<Bar className="h-4 w-4" />}
+            icon={<BarChart className="h-4 w-4" />}
             description="Total outstanding"
             trend={{ value: 0.8, isPositive: false }}
           />

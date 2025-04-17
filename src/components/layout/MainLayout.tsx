@@ -58,7 +58,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild
-                        active={location.pathname === item.path}
+                        data-active={location.pathname === item.path}
                       >
                         <Link to={item.path}>
                           <item.icon />
