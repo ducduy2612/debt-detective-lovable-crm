@@ -1,13 +1,12 @@
 
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Navigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MainLayout from '@/components/layout/MainLayout';
 import { useCrm } from '@/context/CrmContext';
 import Customer360Info from '@/components/customer360/Customer360Info';
 import Customer360Loans from '@/components/customer360/Customer360Loans';
 import Customer360Activities from '@/components/customer360/Customer360Activities';
-import { notFound } from '@/lib/utils';
 
 const Customer360 = () => {
   const { customerId } = useParams();
@@ -16,7 +15,8 @@ const Customer360 = () => {
   const customer = customers.find(c => c.id === customerId);
   
   if (!customer) {
-    return notFound();
+    // Redirect to the NotFound page instead of using the notFound helper
+    return <Navigate to="/not-found" />;
   }
 
   return (
