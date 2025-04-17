@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Table,
   TableBody,
@@ -17,6 +17,8 @@ interface LoanTableProps {
 }
 
 const LoanTable: React.FC<LoanTableProps> = ({ loans }) => {
+  const navigate = useNavigate();
+  
   const getStatusColor = (status: Loan['status']) => {
     switch (status) {
       case 'current':
@@ -30,6 +32,10 @@ const LoanTable: React.FC<LoanTableProps> = ({ loans }) => {
       default:
         return 'bg-gray-500';
     }
+  };
+
+  const handleCustomerClick = (customerId: string) => {
+    navigate(`/customers/${customerId}`);
   };
 
   return (
@@ -47,7 +53,12 @@ const LoanTable: React.FC<LoanTableProps> = ({ loans }) => {
         <TableBody>
           {loans.map((loan) => (
             <TableRow key={loan.id}>
-              <TableCell>{loan.customerId}</TableCell>
+              <TableCell 
+                className="cursor-pointer hover:text-primary"
+                onClick={() => handleCustomerClick(loan.customerId)}
+              >
+                {loan.customerId}
+              </TableCell>
               <TableCell className="capitalize">{loan.productType}</TableCell>
               <TableCell>${loan.outstandingAmount.toLocaleString()}</TableCell>
               <TableCell>

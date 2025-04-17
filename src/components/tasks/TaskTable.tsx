@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Table,
   TableBody,
@@ -17,6 +17,8 @@ interface TaskTableProps {
 }
 
 const TaskTable: React.FC<TaskTableProps> = ({ tasks }) => {
+  const navigate = useNavigate();
+  
   const getPriorityColor = (priority: Task['priority']) => {
     switch (priority) {
       case 'urgent':
@@ -47,6 +49,10 @@ const TaskTable: React.FC<TaskTableProps> = ({ tasks }) => {
     }
   };
 
+  const handleCustomerClick = (customerId: string) => {
+    navigate(`/customers/${customerId}`);
+  };
+
   return (
     <div className="border rounded-lg">
       <Table>
@@ -62,7 +68,12 @@ const TaskTable: React.FC<TaskTableProps> = ({ tasks }) => {
         <TableBody>
           {tasks.map((task) => (
             <TableRow key={task.id}>
-              <TableCell>{task.customerId}</TableCell>
+              <TableCell 
+                className="cursor-pointer hover:text-primary"
+                onClick={() => handleCustomerClick(task.customerId)}
+              >
+                {task.customerId}
+              </TableCell>
               <TableCell className="capitalize">{task.taskType}</TableCell>
               <TableCell>
                 <Badge className={getPriorityColor(task.priority)}>

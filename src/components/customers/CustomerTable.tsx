@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { Phone, Mail, MapPin } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import {
   Table,
   TableBody,
@@ -16,6 +16,12 @@ interface CustomerTableProps {
 }
 
 export const CustomerTable: React.FC<CustomerTableProps> = ({ customers }) => {
+  const navigate = useNavigate();
+
+  const handleCustomerClick = (customerId: string) => {
+    navigate(`/customers/${customerId}`);
+  };
+
   return (
     <div className="border rounded-lg">
       <Table>
@@ -29,8 +35,13 @@ export const CustomerTable: React.FC<CustomerTableProps> = ({ customers }) => {
         </TableHeader>
         <TableBody>
           {customers.map((customer) => (
-            <TableRow key={customer.id} className="hover:bg-muted/50 cursor-pointer">
-              <TableCell className="font-medium">{customer.name}</TableCell>
+            <TableRow key={customer.id} className="hover:bg-muted/50">
+              <TableCell 
+                className="font-medium cursor-pointer hover:text-primary"
+                onClick={() => handleCustomerClick(customer.id)}
+              >
+                {customer.name}
+              </TableCell>
               <TableCell>
                 <div className="space-y-1">
                   {customer.phoneNumbers.map((phone, index) => (
