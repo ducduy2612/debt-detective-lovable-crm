@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { Search } from 'lucide-react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Input } from '@/components/ui/input';
 import { useCrm } from '@/context/CrmContext';
+import TaskTable from '@/components/tasks/TaskTable';
 
 const Tasks = () => {
   const { tasks } = useCrm();
@@ -41,7 +41,7 @@ const Tasks = () => {
           </div>
         </div>
 
-        {/* We'll add the TaskTable component in the next iteration */}
+        <TaskTable tasks={filteredTasks} />
       </div>
     </MainLayout>
   );

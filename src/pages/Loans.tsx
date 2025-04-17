@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { Search } from 'lucide-react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Input } from '@/components/ui/input';
 import { useCrm } from '@/context/CrmContext';
+import LoanTable from '@/components/loans/LoanTable';
 
 const Loans = () => {
   const { loans } = useCrm();
@@ -41,7 +41,7 @@ const Loans = () => {
           </div>
         </div>
 
-        {/* We'll add the LoanTable component in the next iteration */}
+        <LoanTable loans={filteredLoans} />
       </div>
     </MainLayout>
   );
