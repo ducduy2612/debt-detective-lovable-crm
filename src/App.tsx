@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +12,7 @@ const queryClient = new QueryClient();
 const CustomersPage = lazy(() => import('./pages/Customers'));
 const LoansPage = lazy(() => import('./pages/Loans'));
 const TasksPage = lazy(() => import('./pages/Tasks'));
+const Customer360Page = lazy(() => import('./pages/Customer360'));
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -38,7 +38,11 @@ const App = () => (
                 <TasksPage />
               </Suspense>
             } />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="/customers/:customerId" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <Customer360Page />
+              </Suspense>
+            } />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
