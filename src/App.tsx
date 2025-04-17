@@ -11,6 +11,8 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 const CustomersPage = lazy(() => import('./pages/Customers'));
+const LoansPage = lazy(() => import('./pages/Loans'));
+const TasksPage = lazy(() => import('./pages/Tasks'));
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -24,6 +26,16 @@ const App = () => (
             <Route path="/customers" element={
               <Suspense fallback={<div>Loading...</div>}>
                 <CustomersPage />
+              </Suspense>
+            } />
+            <Route path="/loans" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <LoansPage />
+              </Suspense>
+            } />
+            <Route path="/tasks" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <TasksPage />
               </Suspense>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
