@@ -58,56 +58,13 @@ const CHART_COLORS = [
 ];
 
 const Reports = () => {
-  const { loans, actions, activities, tasks, currentUser } = useCrm();
+  const { loans, actions, tasks, currentUser } = useCrm();
   const [reportType, setReportType] = useState('daily-collections');
   const [startDate, setStartDate] = useState<Date | undefined>(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
   const [loanProduct, setLoanProduct] = useState('all');
   const [loanStage, setLoanStage] = useState('all');
   const [agentFilter, setAgentFilter] = useState('all');
-
-  // Prepare filtered data for reports
-  const reportData = useMemo(() => {
-    // Filter loans based on selected filters
-    const filteredLoans = loans.filter(loan => {
-      const matchesProduct = loanProduct === 'all' || loan.type === loanProduct;
-      const matchesStage = loanStage === 'all' || loan.status === loanStage;
-      return matchesProduct && matchesStage;
-    });
-
-    // Filter actions based on date range and agent filter
-    const filteredActions = actions.filter(action => {
-      const actionDate = new Date(action.timestamp);
-      const isInDateRange = (!startDate || actionDate >= startDate) && 
-                            (!endDate || actionDate <= endDate);
-      const matchesAgent = agentFilter === 'all' || action.agentId === agentFilter;
-      return isInDateRange && matchesAgent;
-    });
-
-    // Generate report data based on selected report type
-    switch (reportType) {
-      case 'daily-collections':
-        return generateDailyCollectionsData(filteredActions);
-      
-      case 'agent-productivity':
-        return generateAgentProductivityData(filteredActions);
-      
-      case 'loan-status':
-        return generateLoanStatusData(filteredLoans);
-      
-      case 'overdue-aging':
-        return generateOverdueAgingData(filteredLoans);
-      
-      case 'collection-success':
-        return generateCollectionSuccessData(filteredActions);
-      
-      case 'compliance-audit':
-        return generateComplianceAuditData(filteredActions);
-      
-      default:
-        return [];
-    }
-  }, [reportType, startDate, endDate, loanProduct, loanStage, agentFilter, loans, actions]);
 
   // Generate daily collections data
   const generateDailyCollectionsData = (filteredActions: any[]) => {
@@ -122,7 +79,7 @@ const Reports = () => {
 
     filteredActions.forEach(action => {
       if (action.type === 'payment') {
-        const date = format(new Date(action.timestamp), 'yyyy-MM-dd');
+        const date = format(new Date(action.date || new Date()), 'yyyy-MM-dd');
         
         if (!paymentsByDay[date]) {
           paymentsByDay[date] = {
@@ -258,6 +215,49 @@ const Reports = () => {
     return complainceData;
   };
 
+  // Prepare filtered data for reports
+  const reportData = useMemo(() => {
+    // Filter loans based on selected filters
+    const filteredLoans = loans.filter(loan => {
+      const matchesProduct = loanProduct === 'all' || loan.productType === loanProduct;
+      const matchesStage = loanStage === 'all' || loan.status === loanStage;
+      return matchesProduct && matchesStage;
+    });
+
+    // Filter actions based on date range and agent filter
+    const filteredActions = actions.filter(action => {
+      const actionDate = new Date(action.date);
+      const isInDateRange = (!startDate || actionDate >= startDate) && 
+                            (!endDate || actionDate <= endDate);
+      const matchesAgent = agentFilter === 'all' || action.agentId === agentFilter;
+      return isInDateRange && matchesAgent;
+    });
+
+    // Generate report data based on selected report type
+    switch (reportType) {
+      case 'daily-collections':
+        return generateDailyCollectionsData(filteredActions);
+      
+      case 'agent-productivity':
+        return generateAgentProductivityData(filteredActions);
+      
+      case 'loan-status':
+        return generateLoanStatusData(filteredLoans);
+      
+      case 'overdue-aging':
+        return generateOverdueAgingData(filteredLoans);
+      
+      case 'collection-success':
+        return generateCollectionSuccessData(filteredActions);
+      
+      case 'compliance-audit':
+        return generateComplianceAuditData(filteredActions);
+      
+      default:
+        return [];
+    }
+  }, [reportType, startDate, endDate, loanProduct, loanStage, agentFilter, loans, actions]);
+
   // Get the current report's chart data
   const getPaymentDistributionData = () => {
     if (reportType !== 'daily-collections' || !reportData.length) return [];
@@ -331,7 +331,7 @@ const Reports = () => {
                     >
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="date" />
-                      <YAxis tickFormatter={(value) => formatCurrency(value)} />
+                      <YAxis tickFormatter={(value) => formatCurrency(Number(value))} />
                       <ChartTooltip
                         content={({ active, payload, label }) => {
                           if (active && payload && payload.length) {
@@ -339,7 +339,7 @@ const Reports = () => {
                               <div className="rounded-lg border bg-background p-2 shadow-sm">
                                 <div className="grid grid-cols-2 gap-2">
                                   <div className="font-medium">{label}</div>
-                                  <div className="text-right font-medium">{formatCurrency(payload[0].value)}</div>
+                                  <div className="text-right font-medium">{formatCurrency(Number(payload[0].value))}</div>
                                 </div>
                               </div>
                             );
