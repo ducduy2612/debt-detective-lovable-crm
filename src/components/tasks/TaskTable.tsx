@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Table,
@@ -11,6 +12,9 @@ import {
 import { Task } from '@/types/crm';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
+import { Button } from "@/components/ui/button";
+import { ClipboardEdit } from "lucide-react";
+import ActionForm from './ActionForm';
 
 interface TaskTableProps {
   tasks: Task[];
@@ -18,6 +22,7 @@ interface TaskTableProps {
 
 const TaskTable: React.FC<TaskTableProps> = ({ tasks }) => {
   const navigate = useNavigate();
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   
   const getPriorityColor = (priority: Task['priority']) => {
     switch (priority) {
@@ -53,6 +58,14 @@ const TaskTable: React.FC<TaskTableProps> = ({ tasks }) => {
     navigate(`/customers/${customerId}`);
   };
 
+  const handleLogAction = (task: Task) => {
+    setSelectedTask(task);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedTask(null);
+  };
+
   return (
     <div className="border rounded-lg">
       <Table>
@@ -63,6 +76,7 @@ const TaskTable: React.FC<TaskTableProps> = ({ tasks }) => {
             <TableHead>Priority</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Due Date</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -88,10 +102,32 @@ const TaskTable: React.FC<TaskTableProps> = ({ tasks }) => {
               <TableCell>
                 {formatDistanceToNow(task.dueDate, { addSuffix: true })}
               </TableCell>
+              <TableCell>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleLogAction(task)}
+                  disabled={task.status === 'completed' || task.status === 'cancelled'}
+                >
+                  <ClipboardEdit className="h-4 w-4 mr-1" />
+                  Log Action
+                </Button>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+
+      {selectedTask && (
+        <ActionForm
+          isOpen={!!selectedTask}
+          onClose={handleCloseModal}
+          taskId={selectedTask.id}
+          customerId={selectedTask.customerId}
+          loanId={selectedTask.loanId}
+          predefinedActionType={selectedTask.taskType}
+        />
+      )}
     </div>
   );
 };
