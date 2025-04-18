@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Download, FileType2, Calendar, Filter } from 'lucide-react';
 import { format } from 'date-fns';
@@ -598,17 +597,32 @@ const Reports = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {reportData.filter((item: any) => !item.compliant).map((item: any, index: number) => (
-                        <tr key={index} className="border-b">
-                          <td className="p-2">{item.agentId}</td>
-                          <td className="p-2">{item.type}</td>
-                          <td className="p-2">{format(new Date(item.timestamp), 'yyyy-MM-dd')}</td>
-                          <td className="p-2">
-                            <Badge variant="destructive">Non-compliant</Badge>
-                          </td>
-                          <td className="p-2">{item.complianceIssue}</td>
-                        </tr>
-                      ))}
+                      {reportData.filter((item: any) => !item.compliant).map((item: any, index: number) => {
+                        let formattedDate = 'Invalid Date';
+                        try {
+                          if (item.date && item.date instanceof Date) {
+                            formattedDate = format(item.date, 'yyyy-MM-dd');
+                          } else if (item.date && typeof item.date === 'string') {
+                            formattedDate = format(new Date(item.date), 'yyyy-MM-dd');
+                          } else if (item.timestamp && typeof item.timestamp === 'string') {
+                            formattedDate = format(new Date(item.timestamp), 'yyyy-MM-dd');
+                          }
+                        } catch (error) {
+                          console.error('Error formatting date:', error, item);
+                        }
+
+                        return (
+                          <tr key={index} className="border-b">
+                            <td className="p-2">{item.agentId}</td>
+                            <td className="p-2">{item.type}</td>
+                            <td className="p-2">{formattedDate}</td>
+                            <td className="p-2">
+                              <Badge variant="destructive">Non-compliant</Badge>
+                            </td>
+                            <td className="p-2">{item.complianceIssue}</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
