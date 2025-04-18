@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +13,7 @@ const queryClient = new QueryClient();
 const CustomersPage = lazy(() => import('./pages/Customers'));
 const LoansPage = lazy(() => import('./pages/Loans'));
 const TasksPage = lazy(() => import('./pages/Tasks'));
+const ReportsPage = lazy(() => import('./pages/Reports'));
 const Customer360Page = lazy(() => import('./pages/Customer360'));
 
 const App = () => (
@@ -36,6 +38,11 @@ const App = () => (
             <Route path="/tasks" element={
               <Suspense fallback={<div>Loading...</div>}>
                 <TasksPage />
+              </Suspense>
+            } />
+            <Route path="/reports" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <ReportsPage />
               </Suspense>
             } />
             <Route path="/customers/:customerId" element={
