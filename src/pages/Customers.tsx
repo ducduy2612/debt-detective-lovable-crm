@@ -1,14 +1,65 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Input } from '@/components/ui/input';
 import { CustomerTable } from '@/components/customers/CustomerTable';
-import { useCrm } from '@/context/CrmContext';
+import { supabase } from '@/integrations/supabase/client';
+import { Customer, CustomerContact } from '@/types/crm';
+import { toast } from '@/components/ui/sonner';
 
 const Customers = () => {
-  const { customers } = useCrm();
-  const [searchQuery, setSearchQuery] = React.useState('');
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        // Fetch customers with their contacts
+        const { data: customersData, error: customersError } = await supabase
+          .from('customers')
+          .select(`
+            id, 
+            name, 
+            occupation, 
+            income,
+            contacts:customers_contacts(
+              phone_number, 
+              type
+            )
+          `);
+
+        if (customersError) throw customersError;
+
+        // Transform the data to match our Customer type
+        const formattedCustomers: Customer[] = customersData.map(customer => ({
+          id: customer.id,
+          name: customer.name,
+          occupation: customer.occupation || undefined,
+          income: customer.income || undefined,
+          phoneNumbers: customer.contacts.map(contact => ({
+            phoneNumber: contact.phone_number,
+            type: contact.type,
+            isValid: true
+          })),
+          email: undefined,
+          addresses: [],
+          references: []
+        }));
+
+        setCustomers(formattedCustomers);
+        setLoading(false);
+      } catch (error) {
+        toast.error('Failed to fetch customers', {
+          description: (error as Error).message
+        });
+        setLoading(false);
+      }
+    };
+
+    fetchCustomers();
+  }, []);
 
   const filteredCustomers = React.useMemo(() => {
     if (!searchQuery.trim()) return customers;
@@ -16,10 +67,17 @@ const Customers = () => {
     const query = searchQuery.toLowerCase();
     return customers.filter(customer => 
       customer.name.toLowerCase().includes(query) ||
-      customer.phoneNumbers.some(phone => phone.phoneNumber.includes(query)) ||
-      (customer.email && customer.email.toLowerCase().includes(query))
+      customer.phoneNumbers.some(phone => phone.phoneNumber.includes(query))
     );
   }, [customers, searchQuery]);
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="text-center py-8">Loading customers...</div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>

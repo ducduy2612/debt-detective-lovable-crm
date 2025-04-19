@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Phone, Mail, MapPin } from 'lucide-react';
+import { Phone, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
   Table,
@@ -29,8 +30,8 @@ export const CustomerTable: React.FC<CustomerTableProps> = ({ customers }) => {
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Contact Information</TableHead>
-            <TableHead>Address</TableHead>
             <TableHead>Occupation</TableHead>
+            <TableHead>Income</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -51,27 +52,13 @@ export const CustomerTable: React.FC<CustomerTableProps> = ({ customers }) => {
                       <span className="text-xs text-muted-foreground ml-1">({phone.type})</span>
                     </div>
                   ))}
-                  {customer.email && (
-                    <div className="flex items-center text-sm">
-                      <Mail className="h-3 w-3 mr-1" />
-                      <span>{customer.email}</span>
-                    </div>
-                  )}
                 </div>
-              </TableCell>
-              <TableCell>
-                {customer.addresses.map((address, index) => (
-                  <div key={index} className="flex items-center text-sm mb-1">
-                    <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-                    <span className="truncate">
-                      {address.address}, {address.city}, {address.state} {address.zipCode}
-                      <span className="text-xs text-muted-foreground ml-1">({address.type})</span>
-                    </span>
-                  </div>
-                ))}
               </TableCell>
               <TableCell className="text-muted-foreground">
                 {customer.occupation || 'Not specified'}
+              </TableCell>
+              <TableCell className="text-muted-foreground">
+                {customer.income ? `$${customer.income.toLocaleString()}` : 'Not specified'}
               </TableCell>
             </TableRow>
           ))}
