@@ -14,10 +14,8 @@ export const useAuth = () => {
   const enhancedSignIn = async (email: string, password: string) => {
     try {
       await context.signIn(email, password);
-      toast.success("Successfully logged in");
     } catch (error) {
       // Error handling is done at the context level
-      // Toast will be shown based on the error state
     }
   };
   
@@ -25,7 +23,6 @@ export const useAuth = () => {
   const enhancedSignUp = async (email: string, password: string, name: string) => {
     try {
       await context.signUp(email, password, name);
-      toast.success("Account created successfully");
     } catch (error) {
       // Error handling is done at the context level
     }
@@ -35,10 +32,8 @@ export const useAuth = () => {
   const enhancedSignOut = async () => {
     try {
       await context.signOut();
-      toast.success("Successfully logged out");
     } catch (error) {
-      console.error("Error signing out:", error);
-      toast.error("Failed to log out");
+      // Error handling is done at the context level
     }
   };
   
