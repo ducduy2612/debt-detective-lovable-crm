@@ -7,6 +7,8 @@ import { useCrm } from '@/context/CrmContext';
 import Customer360Info from '@/components/customer360/Customer360Info';
 import Customer360Loans from '@/components/customer360/Customer360Loans';
 import Customer360Activities from '@/components/customer360/Customer360Activities';
+import Customer360Payments from '@/components/customer360/Customer360Payments';
+import Customer360Collaterals from '@/components/customer360/Customer360Collaterals';
 
 const Customer360 = () => {
   const { customerId } = useParams();
@@ -28,10 +30,12 @@ const Customer360 = () => {
         </div>
 
         <Tabs defaultValue="info" className="space-y-4">
-          <TabsList>
+          <TabsList className="flex flex-wrap w-full overflow-x-auto gap-1 md:gap-0">
             <TabsTrigger value="info">Customer Info</TabsTrigger>
             <TabsTrigger value="loans">Loans</TabsTrigger>
             <TabsTrigger value="activities">Activities</TabsTrigger>
+            <TabsTrigger value="payments">Payments</TabsTrigger>
+            <TabsTrigger value="collaterals">Collaterals</TabsTrigger>
           </TabsList>
           
           <TabsContent value="info" className="space-y-4">
@@ -44,6 +48,14 @@ const Customer360 = () => {
           
           <TabsContent value="activities" className="space-y-4">
             <Customer360Activities customerId={customer.id} />
+          </TabsContent>
+          
+          <TabsContent value="payments" className="space-y-4">
+            <Customer360Payments customerId={customer.id} />
+          </TabsContent>
+          
+          <TabsContent value="collaterals" className="space-y-4">
+            <Customer360Collaterals customerId={customer.id} />
           </TabsContent>
         </Tabs>
       </div>

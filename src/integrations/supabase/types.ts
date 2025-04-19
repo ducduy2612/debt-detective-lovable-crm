@@ -12,24 +12,24 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string | null
-          full_name: string | null
+          email: string | null
           id: string
-          role: string | null
-          username: string | null
+          name: string | null
+          role: Database["public"]["Enums"]["user_role"]
         }
         Insert: {
           created_at?: string | null
-          full_name?: string | null
+          email?: string | null
           id: string
-          role?: string | null
-          username?: string | null
+          name?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
         }
         Update: {
           created_at?: string | null
-          full_name?: string | null
+          email?: string | null
           id?: string
-          role?: string | null
-          username?: string | null
+          name?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
         }
         Relationships: []
       }
@@ -38,7 +38,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_my_role: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
     }
     Enums: {
       user_role: "admin" | "agent" | "teamlead"
