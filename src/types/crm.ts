@@ -158,5 +158,5 @@ export interface CustomerView {
   name: string;
   occupation?: string;
   income?: number;
-  phone_numbers: CustomerContact[];
+  phone_numbers: string; // This comes as a JSON string from the view
 }
