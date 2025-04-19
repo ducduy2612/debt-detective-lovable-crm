@@ -44,6 +44,22 @@ export type Database = {
       }
     }
     Enums: {
+      action_outcome:
+        | "successful"
+        | "unsuccessful"
+        | "no_answer"
+        | "promise_to_pay"
+        | "dispute"
+        | "cannot_pay"
+      action_type: "call" | "email" | "SMS" | "visit" | "legal_filing"
+      loan_status: "current" | "overdue" | "default" | "legal_notice" | "closed"
+      payment_method:
+        | "cash"
+        | "bank_transfer"
+        | "check"
+        | "direct_debit"
+        | "credit_card"
+      product_type: "loan" | "credit_card" | "overdraft"
       user_role: "admin" | "agent" | "teamlead"
     }
     CompositeTypes: {
@@ -160,6 +176,24 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      action_outcome: [
+        "successful",
+        "unsuccessful",
+        "no_answer",
+        "promise_to_pay",
+        "dispute",
+        "cannot_pay",
+      ],
+      action_type: ["call", "email", "SMS", "visit", "legal_filing"],
+      loan_status: ["current", "overdue", "default", "legal_notice", "closed"],
+      payment_method: [
+        "cash",
+        "bank_transfer",
+        "check",
+        "direct_debit",
+        "credit_card",
+      ],
+      product_type: ["loan", "credit_card", "overdraft"],
       user_role: ["admin", "agent", "teamlead"],
     },
   },
