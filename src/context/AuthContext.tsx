@@ -126,38 +126,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setState(prevState => ({ ...prevState, isLoading: true, error: null }));
     
     try {
-      const isAdmin = await isFirstUser();
-      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            name  // Store name in user_metadata for the trigger
+          }
+        }
       });
       
       if (error) throw error;
       
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: data.user.id,
-            email: email,
-            name: name,
-            role: isAdmin ? 'admin' : 'agent'
-          });
-          
-        if (profileError) {
-          console.error('Error creating profile:', profileError);
-          throw new Error('Failed to create user profile');
-        }
-        
-        setState(prevState => ({
-          ...prevState,
-          isLoading: false,
-          error: null
-        }));
-        
-        toast.success("Account created successfully! Please sign in.");
-      }
+      setState(prevState => ({
+        ...prevState,
+        isLoading: false,
+        error: null
+      }));
+      
+      toast.success("Account created successfully! Please sign in.");
     } catch (error: any) {
       console.error('Sign up error:', error);
       
@@ -244,6 +231,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const clearError = () => {
     setState(prevState => ({ ...prevState, error: null }));
   };
+
 
   const contextValue: AuthContextType = {
     ...state,
