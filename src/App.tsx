@@ -6,8 +6,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { CrmProvider } from "@/context/CrmContext";
+import { AuthProvider } from "@/context/AuthContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
+import RouteGuard from "./components/RouteGuard";
 
 const queryClient = new QueryClient();
 const CustomersPage = lazy(() => import('./pages/Customers'));
@@ -19,41 +22,62 @@ const Customer360Page = lazy(() => import('./pages/Customer360'));
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <CrmProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/customers" element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <CustomersPage />
-              </Suspense>
-            } />
-            <Route path="/loans" element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <LoansPage />
-              </Suspense>
-            } />
-            <Route path="/tasks" element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <TasksPage />
-              </Suspense>
-            } />
-            <Route path="/reports" element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <ReportsPage />
-              </Suspense>
-            } />
-            <Route path="/customers/:customerId" element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <Customer360Page />
-              </Suspense>
-            } />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </CrmProvider>
+      <AuthProvider>
+        <CrmProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* Auth routes - no guard needed */}
+              <Route path="/auth/login" element={<Auth />} />
+              <Route path="/auth/signup" element={<Auth />} />
+              
+              {/* Protected routes */}
+              <Route path="/" element={
+                <RouteGuard>
+                  <Index />
+                </RouteGuard>
+              } />
+              <Route path="/customers" element={
+                <RouteGuard>
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <CustomersPage />
+                  </Suspense>
+                </RouteGuard>
+              } />
+              <Route path="/loans" element={
+                <RouteGuard>
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <LoansPage />
+                  </Suspense>
+                </RouteGuard>
+              } />
+              <Route path="/tasks" element={
+                <RouteGuard>
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <TasksPage />
+                  </Suspense>
+                </RouteGuard>
+              } />
+              <Route path="/reports" element={
+                <RouteGuard requiredRoles={['admin', 'teamlead']}>
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <ReportsPage />
+                  </Suspense>
+                </RouteGuard>
+              } />
+              <Route path="/customers/:customerId" element={
+                <RouteGuard>
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Customer360Page />
+                  </Suspense>
+                </RouteGuard>
+              } />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </CrmProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

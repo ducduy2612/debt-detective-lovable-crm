@@ -2,7 +2,7 @@
 import React from 'react';
 import { 
   BellIcon, CogIcon, SearchIcon, UserIcon,
-  HomeIcon, UsersIcon, BriefcaseIcon, ClipboardListIcon, BarChartIcon
+  HomeIcon, UsersIcon, BriefcaseIcon, ClipboardListIcon, BarChartIcon, LogOutIcon
 } from 'lucide-react';
 import { 
   Sidebar, 
@@ -22,7 +22,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCrm } from '@/context/CrmContext';
-import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -30,7 +31,9 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { currentUser } = useCrm();
+  const { user, signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   
   const navigationItems = [
     { title: 'Dashboard', icon: HomeIcon, path: '/' },
@@ -39,6 +42,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { title: 'Tasks', icon: ClipboardListIcon, path: '/tasks' },
     { title: 'Reports', icon: BarChartIcon, path: '/reports' },
   ];
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth/login');
+  };
+
+  // Only show reports for admin and teamlead roles
+  const visibleNavItems = navigationItems.filter(item => {
+    if (item.path === '/reports') {
+      return user?.role === 'admin' || user?.role === 'teamlead';
+    }
+    return true;
+  });
 
   return (
     <SidebarProvider>
@@ -54,7 +70,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <SidebarGroupLabel>Main Navigation</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigationItems.map((item) => (
+                  {visibleNavItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild
@@ -73,15 +89,27 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </SidebarContent>
           
           <SidebarFooter className="p-4">
-            <div className="flex items-center">
-              <Avatar className="h-8 w-8 mr-2">
-                <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${currentUser?.name}`} />
-                <AvatarFallback>{currentUser?.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-              </Avatar>
-              <div className="overflow-hidden">
-                <div className="text-sm font-medium text-sidebar-foreground truncate">{currentUser?.name}</div>
-                <div className="text-xs text-sidebar-foreground/70 truncate capitalize">{currentUser?.role.replace('_', ' ')}</div>
+            <div className="flex flex-col space-y-4">
+              <div className="flex items-center">
+                <Avatar className="h-8 w-8 mr-2">
+                  <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${user?.name || currentUser?.name}`} />
+                  <AvatarFallback>{(user?.name || currentUser?.name || 'User').substring(0, 2).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div className="overflow-hidden">
+                  <div className="text-sm font-medium text-sidebar-foreground truncate">{user?.name || currentUser?.name}</div>
+                  <div className="text-xs text-sidebar-foreground/70 truncate capitalize">{user?.role || currentUser?.role.replace('_', ' ')}</div>
+                </div>
               </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start text-sidebar-foreground"
+                onClick={handleSignOut}
+              >
+                <LogOutIcon className="mr-2 h-4 w-4" />
+                Sign Out
+              </Button>
             </div>
           </SidebarFooter>
         </Sidebar>
