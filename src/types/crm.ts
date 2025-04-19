@@ -1,4 +1,3 @@
-
 // Customer
 export interface CustomerReference {
   id: string;
@@ -152,4 +151,12 @@ export interface User {
   email: string;
   role: 'agent' | 'team_lead' | 'admin';
   team?: string;
+}
+
+export interface CustomerView {
+  id: string;
+  name: string;
+  occupation?: string;
+  income?: number;
+  phone_numbers: CustomerContact[];
 }

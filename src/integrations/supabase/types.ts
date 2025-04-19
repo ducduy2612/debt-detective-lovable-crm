@@ -35,7 +35,16 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      customer_view: {
+        Row: {
+          id: string | null
+          income: number | null
+          name: string | null
+          occupation: string | null
+          phone_numbers: Json | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_my_role: {

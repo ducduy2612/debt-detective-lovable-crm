@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Input } from '@/components/ui/input';
 import { CustomerTable } from '@/components/customers/CustomerTable';
 import { supabase } from '@/integrations/supabase/client';
-import { Customer, CustomerContact } from '@/types/crm';
+import { Customer, CustomerView } from '@/types/crm';
 import { toast } from '@/components/ui/sonner';
 
 const Customers = () => {
@@ -16,33 +15,20 @@ const Customers = () => {
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        // Fetch customers with their contacts
-        const { data: customersData, error: customersError } = await supabase
-          .from('customers')
-          .select(`
-            id, 
-            name, 
-            occupation, 
-            income,
-            contacts:customers_contacts(
-              phone_number, 
-              type
-            )
-          `);
+        // Fetch customers from the new customer_view
+        const { data: customersData, error } = await supabase
+          .from('customer_view')
+          .select('*');
 
-        if (customersError) throw customersError;
+        if (error) throw error;
 
         // Transform the data to match our Customer type
-        const formattedCustomers: Customer[] = customersData.map(customer => ({
+        const formattedCustomers: Customer[] = (customersData as CustomerView[]).map(customer => ({
           id: customer.id,
           name: customer.name,
-          occupation: customer.occupation || undefined,
-          income: customer.income || undefined,
-          phoneNumbers: customer.contacts.map(contact => ({
-            phoneNumber: contact.phone_number,
-            type: contact.type,
-            isValid: true
-          })),
+          occupation: customer.occupation,
+          income: customer.income,
+          phoneNumbers: JSON.parse(customer.phone_numbers || '[]'),
           email: undefined,
           addresses: [],
           references: []
