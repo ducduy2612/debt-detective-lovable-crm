@@ -30,7 +30,7 @@ begin
     new.id,
     new.email,
     new.raw_user_meta_data->>'name',
-    case when is_first_user then 'admin'::public.user_role else 'agent'::public.user_role end
+    case when is_first_user then 'admin'::public.user_role else 'teamlead'::public.user_role end
   );
   
   return new;
