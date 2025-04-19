@@ -24,11 +24,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Function to fetch user profile after authentication
   const fetchUserProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      const query = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
+      
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Supabase query timeout after 5s')), 5000)
+      );
+
+      const { data, error } = await Promise.race([
+        query,
+        timeoutPromise
+      ]);
 
       if (error) {
         console.error('Error fetching user profile:', error);
@@ -73,14 +83,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             isAuthenticated: !!session,
           }));
 
-          if (session?.user) {
-            const userProfile = await fetchUserProfile(session.user.id);
-            setState(prevState => ({
-              ...prevState,
-              user: userProfile,
-              isLoading: false,
-            }));
-          }
         } else if (event === 'SIGNED_OUT') {
           setState({
             user: null,
