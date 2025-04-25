@@ -3,35 +3,15 @@ import React, { useMemo } from 'react';
 import { BarChart, CreditCard, DollarSign, Users } from 'lucide-react';
 import MainLayout from '@/components/layout/MainLayout';
 import StatCard from '@/components/dashboard/StatCard';
-import TaskList from '@/components/dashboard/TaskList';
+
 import OverdueLoansChart from '@/components/dashboard/OverdueLoansChart';
 import RecentActivities from '@/components/dashboard/RecentActivities';
 import { useCrm } from '@/context/CrmContext';
 import { getLoanStatus, getLoanOutstandingAmount, getActionDate } from '@/lib/adapters';
 
 const Dashboard = () => {
-  const { loans, tasks, actions, payments, currentAgent } = useCrm();
+  const { loans, actions, payments, currentAgent } = useCrm();
   const agent = currentAgent;
-
-  // Filter to only show tasks assigned to current user and active (not completed/cancelled)
-  const myTasks = useMemo(() => {
-    if (!agent) return [];
-    return tasks
-      .filter(task => task.assignedTo === agent.id && 
-               (task.status === 'pending' || task.status === 'in progress'))
-      .sort((a, b) => {
-        // Sort by priority first
-        const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
-        const priorityDiff = priorityOrder[a.priority.toLowerCase() as keyof typeof priorityOrder] - 
-                            priorityOrder[b.priority.toLowerCase() as keyof typeof priorityOrder];
-        
-        if (priorityDiff !== 0) return priorityDiff;
-        
-        // Then by due date
-        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-      })
-      .slice(0, 5);
-  }, [tasks, agent]);
 
   // Calculate total overdue amount
   const totalOverdueAmount = useMemo(() => {
@@ -102,7 +82,6 @@ const Dashboard = () => {
         </div>
         
         <div className="grid gap-4 md:grid-cols-2">
-          <TaskList title="My Tasks" tasks={myTasks} />
           <OverdueLoansChart />
         </div>
         

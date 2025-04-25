@@ -60,7 +60,7 @@ const App = () => (
                 </RouteGuard>
               } />
               <Route path="/reports" element={
-                <RouteGuard requiredRoles={['admin', 'teamlead']}>
+                <RouteGuard requiredRoles={['ADMIN', 'SUPERVISOR']}>
                   <Suspense fallback={<div>Loading...</div>}>
                     <ReportsPage />
                   </Suspense>

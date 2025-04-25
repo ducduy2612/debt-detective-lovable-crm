@@ -100,7 +100,7 @@ export const getCurrentAgent = (): Agent => {
     name: "Current Agent",
     email: "current@example.com",
     phone: "123-456-7890",
-    type: "AGENT",
+    role: "SUPERVISOR",
     team: Team.EARLY_STAGE_CALL,
     isActive: true,
     cases: [],

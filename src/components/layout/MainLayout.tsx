@@ -53,9 +53,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   // Only show reports for admin and teamlead roles
   const visibleNavItems = navigationItems.filter(item => {
-    if (item.path === '/reports') {
-      return user?.role === 'admin' || user?.role === 'teamlead';
-    }
+    // if (item.path === '/reports') {
+    //   return user?.role === 'admin' || user?.role === 'teamlead';
+    // }
     return true;
   });
 
@@ -104,7 +104,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 </div>
               </div>
               
-              <Button
+              {/* <Button
                 variant="outline"
                 size="sm"
                 className="w-full justify-start text-sidebar-foreground"
@@ -112,7 +112,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               >
                 <LogOutIcon className="mr-2 h-4 w-4" />
                 Sign Out
-              </Button>
+              </Button> */}
             </div>
           </SidebarFooter>
         </Sidebar>

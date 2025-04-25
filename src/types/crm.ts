@@ -184,7 +184,7 @@ export interface Agent {
   email: string;              
   phone: string;              
   
-  type: 'AGENT' | 'SUPERVISOR' | 'ADMIN';
+  role: 'AGENT' | 'SUPERVISOR' | 'ADMIN';
   team: Team;               
   isActive: boolean;          
   
