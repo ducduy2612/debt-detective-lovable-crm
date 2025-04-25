@@ -4,7 +4,7 @@ import { Search } from 'lucide-react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Input } from '@/components/ui/input';
 import { CustomerTable } from '@/components/customers/CustomerTable';
-import { Customer } from '@/types/crm';
+import { Customer, Phone } from '@/types/crm';
 import { toast } from '@/components/ui/sonner';
 import { fetchCustomers } from '@/services/apiService';
 
@@ -36,8 +36,10 @@ const Customers = () => {
     
     const query = searchQuery.toLowerCase();
     return customers.filter(customer => 
-      customer.name.toLowerCase().includes(query) ||
-      customer.phoneNumbers.some(phone => phone.phoneNumber.includes(query))
+      (customer.name?.toLowerCase().includes(query) || 
+       customer.companyName?.toLowerCase().includes(query) || 
+       customer.cif.toLowerCase().includes(query)) ||
+      customer.phoneNumbers.some(phone => phone.number.includes(query))
     );
   }, [customers, searchQuery]);
 

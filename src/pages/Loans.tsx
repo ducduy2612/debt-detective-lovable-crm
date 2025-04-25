@@ -37,6 +37,7 @@ const Loans = () => {
     const query = searchQuery.toLowerCase();
     return loans.filter(loan => 
       loan.customerId.toLowerCase().includes(query) ||
+      loan.accountNumber.toLowerCase().includes(query) ||
       loan.productType.toLowerCase().includes(query)
     );
   }, [loans, searchQuery]);
