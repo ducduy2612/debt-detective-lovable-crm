@@ -33,7 +33,7 @@ const Customer360Info: React.FC<Customer360InfoProps> = ({ customer }) => {
             </div>
             <div className="flex justify-between">
               <dt className="text-sm font-medium text-muted-foreground">Status:</dt>
-              <Badge variant={customer.status === 'ACTIVE' ? 'success' : 'destructive'}>
+              <Badge variant={customer.status === 'ACTIVE' ? 'default' : 'destructive'}>
                 {customer.status}
               </Badge>
             </div>

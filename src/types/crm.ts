@@ -230,7 +230,7 @@ export interface CustomerCase {
   recoveryAbilityStatus: string; // Recovery ability status (read-only)
   
   // Relationships
-  actions: CustomerCaseAction[]; // Customer case actions (1:N)
+  actions: ActionRecord[]; // Fixed: Changed CustomerCaseAction to ActionRecord
   
   // Metadata
   createdAt: Date;            // Creation timestamp (read-only)
@@ -350,4 +350,3 @@ export enum Team {
   MANAGEMENT = 'MANAGEMENT',
   OTHER = 'OTHER'
 }
-

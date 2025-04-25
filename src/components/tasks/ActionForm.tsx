@@ -28,7 +28,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useCrm } from '@/context/CrmContext';
 import { useToast } from '@/hooks/use-toast';
-import { ActionType, ActionResultType } from '@/types/crm';
+import { ActionType, ActionResultType, ActionSubType } from '@/types/crm';
 
 // Define the form schema with compatible types
 const formSchema = z.object({
@@ -96,7 +96,7 @@ const ActionForm: React.FC<ActionFormProps> = ({
       const currentDate = new Date();
       await addAction({
         type: mapToActionType(values.actionType),
-        subtype: ActionType.OTHER, // Default subtype
+        subtype: ActionSubType.OTHER, // Using the correct type from the enum
         actionResult: mapToActionResult(values.outcome),
         actionDate: currentDate,
         notes: values.notes,
