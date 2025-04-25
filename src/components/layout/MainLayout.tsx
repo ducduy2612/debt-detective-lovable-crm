@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Users, CreditCard, BarChart, Settings, 
-  Bell, Search, Menu, X, LogOut, User
+  Bell, Search, Menu, X, LogOut, User, FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
