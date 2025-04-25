@@ -5,7 +5,7 @@ import {
   Case, ActionRecord, Agent, Task, Phone, Address, Email
 } from '@/types/crm';
 // Mock data for development
-import {mockData} from "@/services/mockdata";
+import {mockData} from "@/services/mockData";
 
 // API service methods with typed responses
 export const fetchCustomers = async (): Promise<Customer[]> => {
