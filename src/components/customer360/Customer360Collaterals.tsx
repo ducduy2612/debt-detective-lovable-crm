@@ -8,25 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Filter, SortDesc, SortAsc } from 'lucide-react';
-
-// Define a simple Collateral type for this component since it's not in the CRM types
-interface Collateral {
-  id: string;
-  customerId: string;
-  loanId: string;
-  type: string;
-  description: string;
-  value: number;
-  valuationDate: Date;
-  make?: string;
-  model?: string;
-  year?: number;
-  vin?: string;
-  propertyType?: string;
-  address?: string;
-  size?: number;
-  titleNumber?: string;
-}
+import { Collateral } from '@/types/crm'; 
 
 interface Customer360CollateralsProps {
   customerId: string;
