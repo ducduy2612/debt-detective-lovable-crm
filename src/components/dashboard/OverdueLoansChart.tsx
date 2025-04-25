@@ -3,16 +3,18 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { useCrm } from '@/context/CrmContext';
+import { getLoanStatus } from '@/lib/adapters';
 
 const OverdueLoansChart: React.FC = () => {
   const { loans } = useCrm();
   
-  // Group loans by delinquencyStatus
+  // Group loans by delinquencyStatus using the helper function
   const groupedLoans = loans.reduce((acc, loan) => {
-    if (!acc[loan.delinquencyStatus]) {
-      acc[loan.delinquencyStatus] = 0;
+    const status = getLoanStatus(loan);
+    if (!acc[status]) {
+      acc[status] = 0;
     }
-    acc[loan.delinquencyStatus] += 1;
+    acc[status] += 1;
     return acc;
   }, {} as Record<string, number>);
   

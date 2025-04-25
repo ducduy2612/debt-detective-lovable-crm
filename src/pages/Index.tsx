@@ -7,21 +7,23 @@ import TaskList from '@/components/dashboard/TaskList';
 import OverdueLoansChart from '@/components/dashboard/OverdueLoansChart';
 import RecentActivities from '@/components/dashboard/RecentActivities';
 import { useCrm } from '@/context/CrmContext';
+import { getLoanStatus, getLoanOutstandingAmount, getActionDate } from '@/lib/adapters';
 
 const Dashboard = () => {
-  const { loans, tasks, actions, payments, currentUser } = useCrm();
+  const { loans, tasks, actions, payments, currentUser, currentAgent } = useCrm();
+  const agent = currentUser || currentAgent;
 
   // Filter to only show tasks assigned to current user and active (not completed/cancelled)
   const myTasks = useMemo(() => {
-    if (!currentUser) return [];
+    if (!agent) return [];
     return tasks
-      .filter(task => task.assignedTo === currentUser.id && 
+      .filter(task => task.assignedTo === agent.id && 
                (task.status === 'pending' || task.status === 'in progress'))
       .sort((a, b) => {
         // Sort by priority first
         const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
-        const priorityDiff = priorityOrder[a.priority as keyof typeof priorityOrder] - 
-                            priorityOrder[b.priority as keyof typeof priorityOrder];
+        const priorityDiff = priorityOrder[a.priority.toLowerCase() as keyof typeof priorityOrder] - 
+                            priorityOrder[b.priority.toLowerCase() as keyof typeof priorityOrder];
         
         if (priorityDiff !== 0) return priorityDiff;
         
@@ -29,13 +31,13 @@ const Dashboard = () => {
         return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
       })
       .slice(0, 5);
-  }, [tasks, currentUser]);
+  }, [tasks, agent]);
 
   // Calculate total overdue amount
   const totalOverdueAmount = useMemo(() => {
     return loans
-      .filter(loan => loan.status === 'overdue' || loan.status === 'default')
-      .reduce((sum, loan) => sum + loan.outstandingAmount, 0);
+      .filter(loan => getLoanStatus(loan) === 'overdue' || getLoanStatus(loan) === 'default')
+      .reduce((sum, loan) => sum + getLoanOutstandingAmount(loan), 0);
   }, [loans]);
 
   // Calculate collection rate (payments last 30 days / overdue amounts)
@@ -44,7 +46,7 @@ const Dashboard = () => {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
     const recentPayments = payments
-      .filter(payment => new Date(payment.date) >= thirtyDaysAgo)
+      .filter(payment => new Date(payment.paymentDate) >= thirtyDaysAgo)
       .reduce((sum, payment) => sum + payment.amount, 0);
     
     return totalOverdueAmount > 0 
@@ -55,7 +57,7 @@ const Dashboard = () => {
   // Get recent activities
   const recentActivities = useMemo(() => {
     return actions
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .sort((a, b) => getActionDate(b).getTime() - getActionDate(a).getTime())
       .slice(0, 5);
   }, [actions]);
 

@@ -30,10 +30,13 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { currentUser } = useCrm();
+  const { currentAgent } = useCrm();
   const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // Use the agent from the CRM context
+  const currentUser = currentAgent;
   
   const navigationItems = [
     { title: 'Dashboard', icon: HomeIcon, path: '/' },
@@ -97,7 +100,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 </Avatar>
                 <div className="overflow-hidden">
                   <div className="text-sm font-medium text-sidebar-foreground truncate">{user?.name || currentUser?.name}</div>
-                  <div className="text-xs text-sidebar-foreground/70 truncate capitalize">{user?.role || currentUser?.role.replace('_', ' ')}</div>
+                  <div className="text-xs text-sidebar-foreground/70 truncate capitalize">{user?.role || currentUser?.type}</div>
                 </div>
               </div>
               

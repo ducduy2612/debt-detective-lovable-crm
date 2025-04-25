@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Task } from '@/types/crm';
+import { Task, ActionType } from '@/types/crm';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Button } from "@/components/ui/button";
@@ -24,8 +24,8 @@ const TaskTable: React.FC<TaskTableProps> = ({ tasks }) => {
   const navigate = useNavigate();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   
-  const getPriorityColor = (priority: Task['priority']) => {
-    switch (priority) {
+  const getPriorityColor = (priority: string) => {
+    switch (priority.toLowerCase()) {
       case 'urgent':
         return 'bg-red-500';
       case 'high':
@@ -39,8 +39,8 @@ const TaskTable: React.FC<TaskTableProps> = ({ tasks }) => {
     }
   };
 
-  const getStatusColor = (status: Task['status']) => {
-    switch (status) {
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
       case 'completed':
         return 'bg-green-500';
       case 'in progress':
@@ -64,6 +64,10 @@ const TaskTable: React.FC<TaskTableProps> = ({ tasks }) => {
 
   const handleCloseModal = () => {
     setSelectedTask(null);
+  };
+
+  const isCompletedOrCancelled = (status: string): boolean => {
+    return status.toLowerCase() === 'completed' || status.toLowerCase() === 'cancelled';
   };
 
   return (
@@ -107,7 +111,7 @@ const TaskTable: React.FC<TaskTableProps> = ({ tasks }) => {
                   variant="outline"
                   size="sm"
                   onClick={() => handleLogAction(task)}
-                  disabled={task.status === 'completed' || task.status === 'cancelled'}
+                  disabled={isCompletedOrCancelled(task.status)}
                 >
                   <ClipboardEdit className="h-4 w-4 mr-1" />
                   Log Action
@@ -124,8 +128,8 @@ const TaskTable: React.FC<TaskTableProps> = ({ tasks }) => {
           onClose={handleCloseModal}
           taskId={selectedTask.id}
           customerId={selectedTask.customerId}
-          loanId={selectedTask.loanId}
-          predefinedActionType={selectedTask.taskType}
+          loanId={selectedTask.loanId || ''}
+          predefinedActionType={selectedTask.taskType as ActionType}
         />
       )}
     </div>

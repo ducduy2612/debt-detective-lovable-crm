@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { getLoanStatus, getActionDate, getAgentId } from '@/lib/adapters';
 
 // Report types
 const REPORT_TYPES = [
@@ -57,7 +58,7 @@ const CHART_COLORS = [
 ];
 
 const Reports = () => {
-  const { loans, actions, tasks, currentUser } = useCrm();
+  const { loans, actions, tasks, currentAgent } = useCrm();
   const [reportType, setReportType] = useState('daily-collections');
   const [startDate, setStartDate] = useState<Date | undefined>(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
@@ -78,7 +79,7 @@ const Reports = () => {
 
     filteredActions.forEach(action => {
       if (action.type === 'payment') {
-        const date = format(new Date(action.date || new Date()), 'yyyy-MM-dd');
+        const date = format(getActionDate(action), 'yyyy-MM-dd');
         
         if (!paymentsByDay[date]) {
           paymentsByDay[date] = {
@@ -107,7 +108,7 @@ const Reports = () => {
     const actionsByAgent: Record<string, { agent: string, count: number }> = {};
 
     filteredActions.forEach(action => {
-      const agentId = action.agentId || 'unknown';
+      const agentId = getAgentId(action) || 'unknown';
       if (!actionsByAgent[agentId]) {
         actionsByAgent[agentId] = {
           agent: agentId,
@@ -126,7 +127,7 @@ const Reports = () => {
     const loansByStatus: Record<string, { status: string, count: number }> = {};
 
     filteredLoans.forEach(loan => {
-      const status = loan.status || 'unknown';
+      const status = getLoanStatus(loan) || 'unknown';
       if (!loansByStatus[status]) {
         loansByStatus[status] = {
           status,
@@ -139,22 +140,24 @@ const Reports = () => {
     return Object.values(loansByStatus).sort((a, b) => b.count - a.count);
   };
 
-  // Generate overdue aging data
-  const generateOverdueAgingData = (filteredLoans: any[]) => {
-    // Define age buckets
-    const ageBuckets = [
-      { range: '1-30 days', min: 1, max: 30, count: 0 },
-      { range: '31-60 days', min: 31, max: 60, count: 0 },
-      { range: '61-90 days', min: 61, max: 90, count: 0 },
-      { range: '91-180 days', min: 91, max: 180, count: 0 },
-      { range: '181+ days', min: 181, max: Infinity, count: 0 }
-    ];
+  // Define age buckets
+  const ageBuckets = [
+    { range: '1-30 days', min: 1, max: 30, count: 0 },
+    { range: '31-60 days', min: 31, max: 60, count: 0 },
+    { range: '61-90 days', min: 61, max: 90, count: 0 },
+    { range: '91-180 days', min: 91, max: 180, count: 0 },
+    { range: '181+ days', min: 181, max: Infinity, count: 0 }
+  ];
 
-    // Count loans in each age bucket
+  // Count loans in each age bucket
+  const generateOverdueAgingData = (filteredLoans: any[]) => {
     filteredLoans.forEach(loan => {
-      if (loan.status === 'overdue' && loan.daysPastDue) {
-        const bucket = ageBuckets.find(b => 
-          loan.daysPastDue >= b.min && loan.daysPastDue <= b.max
+      const loanStatus = getLoanStatus(loan);
+      const dpd = loan.dpd;
+
+      if (loanStatus === 'overdue' && dpd) {
+        const bucket = ageBuckets.find(b =>
+          dpd >= b.min && dpd <= b.max
         );
         if (bucket) bucket.count += 1;
       }
@@ -163,14 +166,13 @@ const Reports = () => {
     return ageBuckets;
   };
 
-  // Generate collection success rate data
+  // Group actions by type and count successful vs unsuccessful
   const generateCollectionSuccessData = (filteredActions: any[]) => {
-    // Group actions by type and count successful vs unsuccessful
-    const successByType: Record<string, { 
-      type: string, 
-      total: number, 
+    const successByType: Record<string, {
+      type: string,
+      total: number,
       successful: number,
-      rate: number 
+      rate: number
     }> = {};
 
     filteredActions.forEach(action => {
@@ -183,14 +185,13 @@ const Reports = () => {
           rate: 0
         };
       }
-      
+
       successByType[type].total += 1;
-      if (action.outcome === 'successful' || action.status === 'completed') {
+      if (action.actionResult === 'CONTACTED' || action.actionResult === 'COMPLETED') {
         successByType[type].successful += 1;
       }
     });
 
-    // Calculate success rates
     Object.values(successByType).forEach(item => {
       item.rate = item.total > 0 ? (item.successful / item.total) * 100 : 0;
     });
@@ -200,15 +201,14 @@ const Reports = () => {
       .sort((a, b) => b.rate - a.rate);
   };
 
-  // Generate compliance audit data
+  // Simulate compliance issues (in a real app, this would come from actual data)
   const generateComplianceAuditData = (filteredActions: any[]) => {
-    // Simulate compliance issues (in a real app, this would come from actual data)
     const complainceData = filteredActions.map(action => ({
       ...action,
       compliant: Math.random() > 0.2, // 80% compliant for demo purposes
-      complianceIssue: Math.random() > 0.8 ? 'Missing documentation' : 
-                      Math.random() > 0.5 ? 'Unauthorized contact' : 
-                      'Protocol violation'
+      complianceIssue: Math.random() > 0.8 ? 'Missing documentation' :
+        Math.random() > 0.5 ? 'Unauthorized contact' :
+          'Protocol violation'
     }));
 
     return complainceData;
@@ -219,16 +219,16 @@ const Reports = () => {
     // Filter loans based on selected filters
     const filteredLoans = loans.filter(loan => {
       const matchesProduct = loanProduct === 'all' || loan.productType === loanProduct;
-      const matchesStage = loanStage === 'all' || loan.status === loanStage;
+      const matchesStage = loanStage === 'all' || getLoanStatus(loan) === loanStage;
       return matchesProduct && matchesStage;
     });
 
     // Filter actions based on date range and agent filter
     const filteredActions = actions.filter(action => {
-      const actionDate = new Date(action.date);
+      const actionDate = getActionDate(action);
       const isInDateRange = (!startDate || actionDate >= startDate) && 
                             (!endDate || actionDate <= endDate);
-      const matchesAgent = agentFilter === 'all' || action.agentId === agentFilter;
+      const matchesAgent = agentFilter === 'all' || getAgentId(action) === agentFilter;
       return isInDateRange && matchesAgent;
     });
 
@@ -600,10 +600,10 @@ const Reports = () => {
                       {reportData.filter((item: any) => !item.compliant).map((item: any, index: number) => {
                         let formattedDate = 'Invalid Date';
                         try {
-                          if (item.date && item.date instanceof Date) {
-                            formattedDate = format(item.date, 'yyyy-MM-dd');
-                          } else if (item.date && typeof item.date === 'string') {
-                            formattedDate = format(new Date(item.date), 'yyyy-MM-dd');
+                          if (item.actionDate && item.actionDate instanceof Date) {
+                            formattedDate = format(item.actionDate, 'yyyy-MM-dd');
+                          } else if (item.actionDate && typeof item.actionDate === 'string') {
+                            formattedDate = format(new Date(item.actionDate), 'yyyy-MM-dd');
                           } else if (item.timestamp && typeof item.timestamp === 'string') {
                             formattedDate = format(new Date(item.timestamp), 'yyyy-MM-dd');
                           }

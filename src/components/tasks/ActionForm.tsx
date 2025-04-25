@@ -28,11 +28,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useCrm } from '@/context/CrmContext';
 import { useToast } from '@/hooks/use-toast';
-import { ActionType, ActionOutcome } from '@/types/crm';
+import { ActionType, ActionResultType } from '@/types/crm';
 
+// Define the form schema with compatible types
 const formSchema = z.object({
-  actionType: z.enum(['call', 'email', 'SMS', 'visit', 'legal filing'] as const),
-  outcome: z.enum(['successful', 'unsuccessful', 'no answer', 'promise to pay', 'dispute', 'cannot pay'] as const),
+  actionType: z.enum(['call', 'email', 'SMS', 'visit', 'legal filing']),
+  outcome: z.enum(['successful', 'unsuccessful', 'no answer', 'promise to pay', 'dispute', 'cannot pay']),
   notes: z.string().min(1, 'Notes are required'),
 });
 
@@ -42,7 +43,7 @@ interface ActionFormProps {
   taskId?: string;
   customerId: string;
   loanId: string;
-  predefinedActionType?: ActionType;
+  predefinedActionType?: string;
 }
 
 const ActionForm: React.FC<ActionFormProps> = ({
@@ -56,10 +57,35 @@ const ActionForm: React.FC<ActionFormProps> = ({
   const { addAction } = useCrm();
   const { toast } = useToast();
   
+  // Map from form schema action types to ActionType enum
+  const mapToActionType = (type: string): ActionType => {
+    switch(type) {
+      case 'call': return ActionType.CALL;
+      case 'email': return ActionType.EMAIL;
+      case 'SMS': return ActionType.SMS;
+      case 'visit': return ActionType.VISIT;
+      case 'legal filing': return ActionType.LEGAL_FILING;
+      default: return ActionType.OTHER;
+    }
+  };
+  
+  // Map from form schema outcome to ActionResultType enum
+  const mapToActionResult = (outcome: string): ActionResultType => {
+    switch(outcome) {
+      case 'successful': return ActionResultType.CONTACTED;
+      case 'unsuccessful': return ActionResultType.NOT_CONTACTED;
+      case 'no answer': return ActionResultType.NO_RESPONSE;
+      case 'promise to pay': return ActionResultType.PROMISE_TO_PAY;
+      case 'dispute': return ActionResultType.DISPUTE;
+      case 'cannot pay': return ActionResultType.HARDSHIP_CLAIM;
+      default: return ActionResultType.OTHER;
+    }
+  };
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      actionType: predefinedActionType || 'call',
+      actionType: (predefinedActionType?.toLowerCase() as any) || 'call',
       outcome: undefined,
       notes: '',
     },
@@ -69,14 +95,15 @@ const ActionForm: React.FC<ActionFormProps> = ({
     try {
       const currentDate = new Date();
       await addAction({
-        type: values.actionType,
-        date: currentDate,
-        customerId,
-        loanId,
-        agentId: 'current-user', // This would come from auth context in a real app
-        agentName: 'Current User', // This would come from auth context in a real app
-        outcome: values.outcome,
+        type: mapToActionType(values.actionType),
+        subtype: ActionType.OTHER, // Default subtype
+        actionResult: mapToActionResult(values.outcome),
+        actionDate: currentDate,
         notes: values.notes,
+        caseId: 'auto-generated', // This would be generated in a real app
+        customerId: customerId,
+        createdBy: 'current-user', // This would come from auth context
+        updatedBy: 'current-user', // This would come from auth context
       });
       
       toast({

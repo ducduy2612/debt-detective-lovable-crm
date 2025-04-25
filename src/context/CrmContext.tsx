@@ -5,6 +5,7 @@ import {
   Phone, Address, Email, Agent
 } from '@/types/crm';
 import { mockData } from '@/services/mockData';
+import { getCurrentAgent } from '@/lib/adapters';
 
 interface CrmContextType {
   customers: Customer[];
@@ -15,6 +16,7 @@ interface CrmContextType {
   payments: Payment[];
   agents: Agent[];
   currentAgent: Agent | null;
+  currentUser: Agent | null; // Added for backward compatibility
   selectedCustomer: Customer | null;
   selectedLoan: Loan | null;
   
@@ -34,13 +36,14 @@ const CrmContext = createContext<CrmContextType | undefined>(undefined);
 export const CrmProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [customers, setCustomers] = useState<Customer[]>(mockData.customers);
   const [loans, setLoans] = useState<Loan[]>(mockData.loans);
-  const [cases, setCases] = useState<Case[]>(mockData.cases);
+  const [cases, setCases] = useState<Case[]>(mockData.cases || []);
   const [actions, setActions] = useState<ActionRecord[]>(mockData.actions);
   const [tasks, setTasks] = useState<Task[]>(mockData.tasks);
   const [payments, setPayments] = useState<Payment[]>(mockData.payments);
-  const [agents, setAgents] = useState<Agent[]>(mockData.agents);
+  const [agents, setAgents] = useState<Agent[]>(mockData.agents || []);
   
-  const [currentAgent, setCurrentAgent] = useState<Agent | null>(null);
+  const defaultAgent = getCurrentAgent();
+  const [currentAgent, setCurrentAgent] = useState<Agent | null>(defaultAgent);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   
@@ -170,6 +173,7 @@ export const CrmProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     payments,
     agents,
     currentAgent,
+    currentUser: currentAgent, // Added for backward compatibility
     selectedCustomer,
     selectedLoan,
     setCurrentAgent,

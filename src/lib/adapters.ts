@@ -1,7 +1,7 @@
 
 import {
   Customer, Loan, Payment, Phone, Address, Email,
-  ActionType, ActionSubType, ActionResultType
+  ActionType, ActionSubType, ActionResultType, ActionRecord, Agent
 } from '@/types/crm';
 
 export const formatPhoneNumber = (phone: Phone): string => {
@@ -62,4 +62,51 @@ export const getPrimaryPhone = (customer: Customer): Phone | undefined => {
 
 export const getPrimaryAddress = (customer: Customer): Address | undefined => {
   return customer.addresses.find(a => a.isPrimary);
+};
+
+// New helper functions
+export const getLoanStatus = (loan: Loan): string => {
+  return loan.delinquencyStatus || 'unknown';
+};
+
+export const getLoanOutstandingAmount = (loan: Loan): number => {
+  return loan.currentBalance;
+};
+
+export const getActionDate = (action: ActionRecord): Date => {
+  return action.actionDate;
+};
+
+export const getPaymentMethod = (payment: Payment): string => {
+  return payment.paymentMethod;
+};
+
+export const getAgentName = (action: ActionRecord): string => {
+  return action.createdBy;
+};
+
+export const getAgentId = (action: ActionRecord): string => {
+  return action.createdBy;
+};
+
+export const getActionOutcome = (action: ActionRecord): string => {
+  return action.actionResult;
+};
+
+// Add a default implementation for "currentUser" in the context
+export const getCurrentAgent = (): Agent => {
+  return {
+    id: "current-agent",
+    employeeId: "EMP001",
+    name: "Current Agent",
+    email: "current@example.com",
+    phone: "123-456-7890",
+    type: "AGENT",
+    team: "EARLY_STAGE_CALL",
+    isActive: true,
+    cases: [],
+    actions: [],
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
 };
