@@ -11,7 +11,7 @@ import { getLoanStatus, getLoanOutstandingAmount, getActionDate } from '@/lib/ad
 
 const Dashboard = () => {
   const { loans, tasks, actions, payments, currentAgent } = useCrm();
-  const agent = currentAgent; // Use currentAgent instead of currentUser
+  const agent = currentAgent;
 
   // Filter to only show tasks assigned to current user and active (not completed/cancelled)
   const myTasks = useMemo(() => {

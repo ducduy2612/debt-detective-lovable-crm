@@ -1,209 +1,183 @@
 
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { useCrm } from '@/context/CrmContext';
-import { useToast } from '@/hooks/use-toast';
-import { ActionType, ActionResultType, ActionSubType } from '@/types/crm';
+import { ActionRecord, ActionType, Case } from '@/types/crm';
+import { toast } from '@/components/ui/sonner';
 
-// Define the form schema with compatible types
-const formSchema = z.object({
-  actionType: z.enum(['call', 'email', 'SMS', 'visit', 'legal filing']),
-  outcome: z.enum(['successful', 'unsuccessful', 'no answer', 'promise to pay', 'dispute', 'cannot pay']),
-  notes: z.string().min(1, 'Notes are required'),
-});
+type ActionSubType = 'inbound' | 'outbound' | 'missed' | 'scheduled';
 
 interface ActionFormProps {
-  isOpen: boolean;
-  onClose: () => void;
-  taskId?: string;
-  customerId: string;
-  loanId: string;
-  predefinedActionType?: string;
+  caseId: string;
+  onActionAdded?: () => void;
+  triggerLabel?: string;
 }
 
 const ActionForm: React.FC<ActionFormProps> = ({
-  isOpen,
-  onClose,
-  taskId,
-  customerId,
-  loanId,
-  predefinedActionType
+  caseId,
+  onActionAdded,
+  triggerLabel = 'Add Action',
 }) => {
-  const { addAction } = useCrm();
-  const { toast } = useToast();
+  const { addAction, currentAgent, cases } = useCrm();
+  const [open, setOpen] = useState(false);
+  const [actionType, setActionType] = useState<ActionType>(ActionType.CALL);
+  const [subType, setSubType] = useState<ActionSubType>('outbound');
+  const [notes, setNotes] = useState('');
+  const [actionResult, setActionResult] = useState('CONTACTED');
   
-  // Map from form schema action types to ActionType enum
-  const mapToActionType = (type: string): ActionType => {
-    switch(type) {
-      case 'call': return ActionType.CALL;
-      case 'email': return ActionType.EMAIL;
-      case 'SMS': return ActionType.SMS;
-      case 'visit': return ActionType.VISIT;
-      case 'legal filing': return ActionType.LEGAL_FILING;
-      default: return ActionType.OTHER;
+  // Find the related case and its loan/customer info
+  const currentCase = cases.find(c => c.id === caseId);
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!currentAgent) {
+      toast.error('User not authenticated');
+      return;
     }
-  };
-  
-  // Map from form schema outcome to ActionResultType enum
-  const mapToActionResult = (outcome: string): ActionResultType => {
-    switch(outcome) {
-      case 'successful': return ActionResultType.CONTACTED;
-      case 'unsuccessful': return ActionResultType.NOT_CONTACTED;
-      case 'no answer': return ActionResultType.NO_RESPONSE;
-      case 'promise to pay': return ActionResultType.PROMISE_TO_PAY;
-      case 'dispute': return ActionResultType.DISPUTE;
-      case 'cannot pay': return ActionResultType.HARDSHIP_CLAIM;
-      default: return ActionResultType.OTHER;
-    }
-  };
-  
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      actionType: (predefinedActionType?.toLowerCase() as any) || 'call',
-      outcome: undefined,
-      notes: '',
-    },
-  });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!notes.trim()) {
+      toast.error('Please add notes for this action');
+      return;
+    }
+
     try {
-      const currentDate = new Date();
-      await addAction({
-        type: mapToActionType(values.actionType),
-        subtype: ActionSubType.OTHER, // Using the correct type from the enum
-        actionResult: mapToActionResult(values.outcome),
-        actionDate: currentDate,
-        notes: values.notes,
-        caseId: 'auto-generated', // This would be generated in a real app
-        customerId: customerId,
-        createdBy: 'current-user', // This would come from auth context
-        updatedBy: 'current-user', // This would come from auth context
+      addAction({
+        caseId,
+        type: actionType,
+        actionSubtype: subType,
+        actionDate: new Date(),
+        actionResult,
+        notes,
+        createdBy: currentAgent.id,
+        updatedBy: currentAgent.id,
       });
       
-      toast({
-        title: "Action logged successfully",
-        description: "The action has been recorded in the system.",
-      });
+      toast.success('Action added successfully');
       
-      form.reset();
-      onClose();
+      // Reset form
+      setActionType(ActionType.CALL);
+      setSubType('outbound');
+      setNotes('');
+      setActionResult('CONTACTED');
+      
+      // Close dialog
+      setOpen(false);
+      
+      // Call onActionAdded callback if provided
+      if (onActionAdded) {
+        onActionAdded();
+      }
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to save action",
-        description: "Please try again.",
+      toast.error('Failed to add action', {
+        description: (error as Error).message
       });
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="default" size="sm">{triggerLabel}</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Log Action</DialogTitle>
+          <DialogTitle>Add New Action</DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="actionType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Action Type</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                    disabled={!!predefinedActionType}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select action type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="call">Call</SelectItem>
-                      <SelectItem value="email">Email</SelectItem>
-                      <SelectItem value="SMS">SMS</SelectItem>
-                      <SelectItem value="visit">Visit</SelectItem>
-                      <SelectItem value="legal filing">Legal Filing</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="outcome"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Outcome</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select outcome" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="successful">Successful</SelectItem>
-                      <SelectItem value="unsuccessful">Unsuccessful</SelectItem>
-                      <SelectItem value="no answer">No Answer</SelectItem>
-                      <SelectItem value="promise to pay">Promise to Pay</SelectItem>
-                      <SelectItem value="dispute">Dispute</SelectItem>
-                      <SelectItem value="cannot pay">Cannot Pay</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Notes</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} placeholder="Enter action notes..." />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" type="button" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button type="submit">Submit</Button>
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="action-type">Action Type</Label>
+                <Select
+                  value={actionType}
+                  onValueChange={(value) => setActionType(value as ActionType)}
+                >
+                  <SelectTrigger id="action-type">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ActionType.CALL}>Call</SelectItem>
+                    <SelectItem value={ActionType.EMAIL}>Email</SelectItem>
+                    <SelectItem value={ActionType.SMS}>SMS</SelectItem>
+                    <SelectItem value={ActionType.VISIT}>Visit</SelectItem>
+                    <SelectItem value={ActionType.LEGAL_FILING}>Legal Filing</SelectItem>
+                    <SelectItem value={ActionType.LEGAL_NOTICE}>Legal Notice</SelectItem>
+                    <SelectItem value={ActionType.OTHER}>Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="sub-type">Sub Type</Label>
+                <Select
+                  value={subType}
+                  onValueChange={(value) => setSubType(value as ActionSubType)}
+                >
+                  <SelectTrigger id="sub-type">
+                    <SelectValue placeholder="Select sub-type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="inbound">Inbound</SelectItem>
+                    <SelectItem value="outbound">Outbound</SelectItem>
+                    <SelectItem value="missed">Missed</SelectItem>
+                    <SelectItem value="scheduled">Scheduled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </form>
-        </Form>
+            <div className="space-y-2">
+              <Label htmlFor="result">Result</Label>
+              <Select
+                value={actionResult}
+                onValueChange={setActionResult}
+              >
+                <SelectTrigger id="result">
+                  <SelectValue placeholder="Select result" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="CONTACTED">Contacted</SelectItem>
+                  <SelectItem value="NOT_CONTACTED">Not Contacted</SelectItem>
+                  <SelectItem value="LEFT_MESSAGE">Left Message</SelectItem>
+                  <SelectItem value="PROMISE_TO_PAY">Promise to Pay</SelectItem>
+                  <SelectItem value="DISPUTE">Dispute</SelectItem>
+                  <SelectItem value="HARDSHIP_CLAIM">Hardship Claim</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Enter details about this action..."
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" type="button" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button type="submit">Save Action</Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

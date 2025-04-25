@@ -28,7 +28,6 @@ const Customer360Activities: React.FC<Customer360ActivitiesProps> = ({ customerI
   const getActionIcon = (type: ActionType) => {
     switch (type) {
       case ActionType.CALL:
-      // Remove CALL_FOLLOWUP since it doesn't exist in the enum
         return <PhoneCall className="h-4 w-4" />;
       case ActionType.EMAIL:
         return <Mail className="h-4 w-4" />;
