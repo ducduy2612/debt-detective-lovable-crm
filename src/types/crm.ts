@@ -35,7 +35,8 @@ export interface Customer extends DataSourceTracking {
   phoneNumbers: Phone[];
   addresses: Address[];
   emails: Email[];
-  loans: Loan[];              
+  loans: Loan[];
+  referenceCustomers: ReferenceCustomer[];
 }
 
 export interface Phone extends DataSourceTracking {
@@ -235,6 +236,32 @@ export interface CustomerCase {
   createdAt: Date;            // Creation timestamp (read-only)
   updatedAt: Date;            // Last update timestamp (read-only)
 }
+
+export interface ReferenceCustomer extends DataSourceTracking {
+  id: string;                 // Unique identifier (read-only)
+  customerId: string;         // Reference to primary customer (read-only)
+  relationshipType: string;   // Relationship to primary customer (editable)
+  
+  cif: string;                // VPBANK CIF (read-only)
+  type: 'INDIVIDUAL' | 'ORGANIZATION'; // Customer type (read-only)
+  
+  // For individuals
+  name?: string;              // Name (read-only)
+  dateOfBirth?: Date;         // Date of birth (read-only)
+  nationalId?: string;        // National ID number (read-only)
+  gender?: string;            // Gender (read-only)
+  
+  // For organizations
+  companyName?: string;       // Company name (read-only)
+  registrationNumber?: string; // Registration number (read-only)
+  taxId?: string;             // Tax ID (read-only)
+  
+  // Relationships
+  phoneNumbers: Phone[];      // Phone numbers (1:N)
+  addresses: Address[];       // Addresses (1:N)
+  emails: Email[];            // Email (1:N)
+}
+
 
 export interface Task {
   id: string;
