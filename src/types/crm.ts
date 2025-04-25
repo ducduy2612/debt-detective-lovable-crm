@@ -214,6 +214,28 @@ export interface Payment extends DataSourceTracking {
   penaltyAmount: number;      
 }
 
+export interface CustomerCase {
+  id: string;                 // Unique identifier (read-only)
+  customerId: string;         // Reference to customer (read-only)
+  
+  assignedCallAgentId?: string;  // Assigned call agent ID (editable)
+  assignedFieldAgentId?: string; // Assigned field agent ID (editable)
+  
+  // Status fields derived from latest CustomerCaseAction
+  customerStatus: string;        // Customer status (read-only)
+  collateralStatus: string;      // Collateral status (read-only)
+  processingStateStatus: string; // Processing state status (read-only)
+  lendingViolationStatus: string; // Lending violation status (read-only)
+  recoveryAbilityStatus: string; // Recovery ability status (read-only)
+  
+  // Relationships
+  actions: CustomerCaseAction[]; // Customer case actions (1:N)
+  
+  // Metadata
+  createdAt: Date;            // Creation timestamp (read-only)
+  updatedAt: Date;            // Last update timestamp (read-only)
+}
+
 export interface Task {
   id: string;
   customerId: string;
