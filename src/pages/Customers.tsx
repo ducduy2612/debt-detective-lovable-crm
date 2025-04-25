@@ -4,9 +4,9 @@ import { Search } from 'lucide-react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Input } from '@/components/ui/input';
 import { CustomerTable } from '@/components/customers/CustomerTable';
-import { supabase } from '@/integrations/supabase/client';
-import { Customer, CustomerView } from '@/types/crm';
+import { Customer } from '@/types/crm';
 import { toast } from '@/components/ui/sonner';
+import { fetchCustomers } from '@/services/apiService';
 
 const Customers = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -14,38 +14,21 @@ const Customers = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCustomers = async () => {
+    const getCustomers = async () => {
       try {
-        // Fetch customers from the new customer_view
-        const { data: customersData, error } = await supabase
-          .from('customer_view')
-          .select('*');
-
-        if (error) throw error;
-
-        // Transform the data to match our Customer type
-        const formattedCustomers: Customer[] = (customersData as CustomerView[]).map(customer => ({
-          id: customer.id,
-          name: customer.name,
-          occupation: customer.occupation,
-          income: customer.income,
-          phoneNumbers: JSON.parse(customer.phone_numbers || '[]'),
-          email: undefined,
-          addresses: [],
-          references: []
-        }));
-
-        setCustomers(formattedCustomers);
-        setLoading(false);
+        setLoading(true);
+        const customersData = await fetchCustomers();
+        setCustomers(customersData);
       } catch (error) {
         toast.error('Failed to fetch customers', {
           description: (error as Error).message
         });
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchCustomers();
+    getCustomers();
   }, []);
 
   const filteredCustomers = React.useMemo(() => {

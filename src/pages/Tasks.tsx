@@ -1,17 +1,37 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useCrm } from '@/context/CrmContext';
 import TaskTable from '@/components/tasks/TaskTable';
 import { Task } from '@/types/crm';
+import { toast } from '@/components/ui/sonner';
+import { fetchTasks } from '@/services/apiService';
 
 const Tasks = () => {
-  const { tasks } = useCrm();
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [statusFilter, setStatusFilter] = React.useState<string>('all');
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const getTasks = async () => {
+      try {
+        setLoading(true);
+        const tasksData = await fetchTasks();
+        setTasks(tasksData);
+      } catch (error) {
+        toast.error('Failed to fetch tasks', {
+          description: (error as Error).message
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getTasks();
+  }, []);
 
   const filteredTasks = React.useMemo(() => {
     let filtered = tasks;
@@ -32,6 +52,14 @@ const Tasks = () => {
 
     return filtered;
   }, [tasks, searchQuery, statusFilter]);
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="text-center py-8">Loading tasks...</div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>

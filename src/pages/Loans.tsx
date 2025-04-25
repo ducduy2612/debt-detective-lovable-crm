@@ -1,13 +1,35 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Input } from '@/components/ui/input';
-import { useCrm } from '@/context/CrmContext';
 import LoanTable from '@/components/loans/LoanTable';
+import { Loan } from '@/types/crm';
+import { toast } from '@/components/ui/sonner';
+import { fetchLoans } from '@/services/apiService';
 
 const Loans = () => {
-  const { loans } = useCrm();
-  const [searchQuery, setSearchQuery] = React.useState('');
+  const [loans, setLoans] = useState<Loan[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const getLoans = async () => {
+      try {
+        setLoading(true);
+        const loansData = await fetchLoans();
+        setLoans(loansData);
+      } catch (error) {
+        toast.error('Failed to fetch loans', {
+          description: (error as Error).message
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getLoans();
+  }, []);
 
   const filteredLoans = React.useMemo(() => {
     if (!searchQuery.trim()) return loans;
@@ -18,6 +40,14 @@ const Loans = () => {
       loan.productType.toLowerCase().includes(query)
     );
   }, [loans, searchQuery]);
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="text-center py-8">Loading loans...</div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>

@@ -1,23 +1,52 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MainLayout from '@/components/layout/MainLayout';
-import { useCrm } from '@/context/CrmContext';
 import Customer360Info from '@/components/customer360/Customer360Info';
 import Customer360Loans from '@/components/customer360/Customer360Loans';
 import Customer360Activities from '@/components/customer360/Customer360Activities';
 import Customer360Payments from '@/components/customer360/Customer360Payments';
 import Customer360Collaterals from '@/components/customer360/Customer360Collaterals';
+import { fetchCustomers } from '@/services/apiService';
+import { Customer } from '@/types/crm';
+import { toast } from '@/components/ui/sonner';
 
 const Customer360 = () => {
   const { customerId } = useParams();
-  const { customers } = useCrm();
+  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [loading, setLoading] = useState(true);
   
-  const customer = customers.find(c => c.id === customerId);
+  useEffect(() => {
+    const getCustomer = async () => {
+      try {
+        setLoading(true);
+        const customers = await fetchCustomers();
+        const foundCustomer = customers.find(c => c.id === customerId);
+        setCustomer(foundCustomer || null);
+      } catch (error) {
+        toast.error('Failed to fetch customer details', {
+          description: (error as Error).message
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (customerId) {
+      getCustomer();
+    }
+  }, [customerId]);
+  
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="text-center py-8">Loading customer details...</div>
+      </MainLayout>
+    );
+  }
   
   if (!customer) {
-    // Redirect to the NotFound page instead of using the notFound helper
     return <Navigate to="/not-found" />;
   }
 
