@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -69,11 +68,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 Loans
               </Link>
               <Link
-                to="/settings"
+                to="/actions"
                 className="flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground hover:text-primary"
               >
-                <Settings className="h-5 w-5" />
-                Settings
+                <FileText className="h-5 w-5" />
+                Actions
+              </Link>
+              <Link
+                to="/reports"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground hover:text-primary"
+              >
+                <BarChart className="h-5 w-5" />
+                Reports
               </Link>
             </nav>
           </SheetContent>
@@ -161,11 +167,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               Loans
             </Link>
             <Link
-              to="/settings"
+              to="/actions"
               className="flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground hover:text-primary"
             >
-              <Settings className="h-5 w-5" />
-              Settings
+              <FileText className="h-5 w-5" />
+              Actions
+            </Link>
+            <Link
+              to="/reports"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground hover:text-primary"
+            >
+              <BarChart className="h-5 w-5" />
+              Reports
             </Link>
           </nav>
         </aside>

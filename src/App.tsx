@@ -15,7 +15,7 @@ import RouteGuard from "./components/RouteGuard";
 const queryClient = new QueryClient();
 const CustomersPage = lazy(() => import('./pages/Customers'));
 const LoansPage = lazy(() => import('./pages/Loans'));
-const TasksPage = lazy(() => import('./pages/Tasks'));
+const ActionsPage = lazy(() => import('./pages/Actions'));
 const ReportsPage = lazy(() => import('./pages/Reports'));
 const Customer360Page = lazy(() => import('./pages/Customer360'));
 
@@ -52,10 +52,10 @@ const App = () => (
                   </Suspense>
                 </RouteGuard>
               } />
-              <Route path="/tasks" element={
+              <Route path="/actions" element={
                 <RouteGuard>
                   <Suspense fallback={<div>Loading...</div>}>
-                    <TasksPage />
+                    <ActionsPage />
                   </Suspense>
                 </RouteGuard>
               } />
