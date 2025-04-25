@@ -4,12 +4,12 @@ import { Search } from 'lucide-react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Input } from '@/components/ui/input';
 import { CustomerTable } from '@/components/customers/CustomerTable';
-import { Customer, Phone } from '@/types/crm';
+import { CustomerWithLegacyFields } from '@/types/legacyTypes';
 import { toast } from '@/components/ui/sonner';
 import { fetchCustomers } from '@/services/apiService';
 
 const Customers = () => {
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customers, setCustomers] = useState<CustomerWithLegacyFields[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
 

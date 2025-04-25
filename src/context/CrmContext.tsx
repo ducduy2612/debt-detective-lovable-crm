@@ -1,26 +1,30 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { 
-  Customer, Loan, CollectionAction, CollectionStrategy, Task, Payment, User 
+  Customer, Loan, Payment
 } from '@/types/crm';
+import { 
+  CollectionAction, CollectionStrategy, Task, User,
+  CustomerWithLegacyFields, LoanWithLegacyFields, PaymentWithLegacyFields
+} from '@/types/legacyTypes';
 import { mockData } from '@/services/mockData';
 
 interface CrmContextType {
   users: User[];
-  customers: Customer[];
-  loans: Loan[];
+  customers: CustomerWithLegacyFields[];
+  loans: LoanWithLegacyFields[];
   strategies: CollectionStrategy[];
   tasks: Task[];
   actions: CollectionAction[];
-  payments: Payment[];
+  payments: PaymentWithLegacyFields[];
   currentUser: User | null;
-  selectedCustomer: Customer | null;
-  selectedLoan: Loan | null;
+  selectedCustomer: CustomerWithLegacyFields | null;
+  selectedLoan: LoanWithLegacyFields | null;
   
   // Methods
   setCurrentUser: (user: User) => void;
-  selectCustomer: (customer: Customer | null) => void;
-  selectLoan: (loan: Loan | null) => void;
+  selectCustomer: (customer: CustomerWithLegacyFields | null) => void;
+  selectLoan: (loan: LoanWithLegacyFields | null) => void;
   addAction: (action: Omit<CollectionAction, 'id'>) => void;
   updateTaskStatus: (taskId: string, status: Task['status']) => void;
   addCustomerContact: (customerId: string, phoneNumber: string, type: string) => void;
@@ -31,23 +35,23 @@ const CrmContext = createContext<CrmContextType | undefined>(undefined);
 
 export const CrmProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [users, setUsers] = useState<User[]>(mockData.users);
-  const [customers, setCustomers] = useState<Customer[]>(mockData.customers);
-  const [loans, setLoans] = useState<Loan[]>(mockData.loans);
+  const [customers, setCustomers] = useState<CustomerWithLegacyFields[]>(mockData.customers);
+  const [loans, setLoans] = useState<LoanWithLegacyFields[]>(mockData.loans);
   const [strategies, setStrategies] = useState<CollectionStrategy[]>(mockData.strategies);
   const [tasks, setTasks] = useState<Task[]>(mockData.tasks);
   const [actions, setActions] = useState<CollectionAction[]>(mockData.actions);
-  const [payments, setPayments] = useState<Payment[]>(mockData.payments);
+  const [payments, setPayments] = useState<PaymentWithLegacyFields[]>(mockData.payments);
   
   const [currentUser, setCurrentUser] = useState<User | null>(users[0]);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerWithLegacyFields | null>(null);
+  const [selectedLoan, setSelectedLoan] = useState<LoanWithLegacyFields | null>(null);
   
-  const selectCustomer = (customer: Customer | null) => {
+  const selectCustomer = (customer: CustomerWithLegacyFields | null) => {
     setSelectedCustomer(customer);
     setSelectedLoan(null);
   };
   
-  const selectLoan = (loan: Loan | null) => {
+  const selectLoan = (loan: LoanWithLegacyFields | null) => {
     setSelectedLoan(loan);
     if (loan) {
       const customer = customers.find(c => c.id === loan.customerId);
@@ -92,11 +96,23 @@ export const CrmProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           phoneNumbers: [
             ...customer.phoneNumbers,
             {
+              id: `phone-${Date.now()}`,
+              customerId,
+              number: phoneNumber,
+              type: type.toUpperCase(),
+              isPrimary: customer.phoneNumbers.length === 0,
+              isVerified: false,
+              sourceSystem: 'CRM',
+              createdBy: currentUser?.id || '',
+              updatedBy: currentUser?.id || '',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              isEditable: true,
+              // Legacy fields
               phoneNumber,
-              type: type as 'primary' | 'secondary' | 'work' | 'other',
               isValid: true,
               addedBy: currentUser?.id,
-              addedOn: new Date(),
+              addedOn: new Date()
             }
           ]
         };
@@ -121,14 +137,27 @@ export const CrmProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             ...customer.addresses,
             {
               id: `addr-${customerId}-${Date.now()}`,
-              type: type as 'home' | 'work' | 'other',
-              address,
+              customerId,
+              addressLine1: address,
               city,
               state,
-              zipCode,
+              district: zipCode,
+              country: 'US',
+              type: type.toUpperCase(),
+              isPrimary: customer.addresses.length === 0,
               isVerified: false,
+              sourceSystem: 'CRM',
+              createdBy: currentUser?.id || '',
+              updatedBy: currentUser?.id || '',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              isEditable: true,
+              // Legacy fields
+              address,
+              zipCode,
+              isValue: true,
               addedBy: currentUser?.id,
-              addedOn: new Date(),
+              addedOn: new Date()
             }
           ]
         };

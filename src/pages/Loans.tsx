@@ -4,12 +4,12 @@ import { Search } from 'lucide-react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Input } from '@/components/ui/input';
 import LoanTable from '@/components/loans/LoanTable';
-import { Loan } from '@/types/crm';
 import { toast } from '@/components/ui/sonner';
 import { fetchLoans } from '@/services/apiService';
+import { LoanWithLegacyFields } from '@/types/legacyTypes';
 
 const Loans = () => {
-  const [loans, setLoans] = useState<Loan[]>([]);
+  const [loans, setLoans] = useState<LoanWithLegacyFields[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
 
