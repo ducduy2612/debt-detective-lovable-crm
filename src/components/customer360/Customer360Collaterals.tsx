@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useCrm } from '@/context/CrmContext';
 import { format } from 'date-fns';
@@ -8,33 +7,16 @@ import { Badge } from '@/components/ui/badge';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Filter, SortDesc, SortAsc } from 'lucide-react';
-import { Collateral } from '@/types/crm'; 
 
 interface Customer360CollateralsProps {
   customerId: string;
 }
 
 const Customer360Collaterals: React.FC<Customer360CollateralsProps> = ({ customerId }) => {
-  const { loans } = useCrm();
+  const { loans, collaterals } = useCrm();
   const customerLoans = loans.filter(loan => loan.customerId === customerId);
-  
-  // For demonstration, create mock collaterals based on loans
-  const mockCollaterals: Collateral[] = customerLoans.map(loan => ({
-    id: `collateral-${loan.id}`,
-    customerId: loan.customerId,
-    loanId: loan.id,
-    type: loan.productType.toLowerCase() === 'mortgage' ? 'real estate' : 
-          loan.productType.toLowerCase() === 'auto' ? 'vehicle' : 'other',
-    description: `${loan.productType} collateral for loan ${loan.id}`,
-    value: loan.originalAmount * 1.2,
-    valuationDate: new Date(loan.disbursementDate),
-    propertyType: loan.productType.toLowerCase() === 'mortgage' ? 'Residential' : undefined,
-    make: loan.productType.toLowerCase() === 'auto' ? 'Toyota' : undefined,
-    model: loan.productType.toLowerCase() === 'auto' ? 'Camry' : undefined,
-    year: loan.productType.toLowerCase() === 'auto' ? 2020 : undefined,
-    address: loan.productType.toLowerCase() === 'mortgage' ? '123 Main St, Anytown, CA' : undefined,
-    size: loan.productType.toLowerCase() === 'mortgage' ? 2000 : undefined
-  }));
+  const loanIds = customerLoans.map(loan => loan.id);
+  const customerCollaterals = collaterals.filter(collateral => loanIds.includes(collateral.loanId));
   
   // State for filters and pagination
   const [selectedLoanId, setSelectedLoanId] = useState<string>('all');
@@ -45,10 +27,7 @@ const Customer360Collaterals: React.FC<Customer360CollateralsProps> = ({ custome
   
   const itemsPerPage = 10;
   
-  // Get all relevant collaterals
-  const customerCollaterals = mockCollaterals;
-  
-  // Get unique collateral types as strings
+  // Get unique collateral types
   const collateralTypes = Array.from(new Set(customerCollaterals.map(c => c.type)));
   
   // Filter collaterals

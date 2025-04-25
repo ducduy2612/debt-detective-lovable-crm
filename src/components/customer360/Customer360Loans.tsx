@@ -20,29 +20,61 @@ const Customer360Loans: React.FC<Customer360LoansProps> = ({ customerId }) => {
         <Card key={loan.id}>
           <CardHeader>
             <div className="flex justify-between items-start">
-              <CardTitle>Loan {loan.id}</CardTitle>
+              <CardTitle>Loan {loan.accountNumber}</CardTitle>
               <Badge className={getDelinquencyStatusColor(loan.delinquencyStatus)}>
                 {loan.delinquencyStatus}
               </Badge>
             </div>
           </CardHeader>
           <CardContent>
-            <dl className="grid grid-cols-2 gap-4">
+            <dl className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div>
                 <dt className="text-sm font-medium text-muted-foreground">Product Type</dt>
                 <dd className="text-sm capitalize">{loan.productType}</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-muted-foreground">Original Amount</dt>
+                <dd className="text-sm">${loan.originalAmount.toLocaleString()}</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-muted-foreground">Current Balance</dt>
+                <dd className="text-sm">${loan.currentBalance.toLocaleString()}</dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-muted-foreground">Interest Rate</dt>
                 <dd className="text-sm">{loan.interestRate}%</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-muted-foreground">Outstanding Amount</dt>
-                <dd className="text-sm">${loan.currentBalance.toLocaleString()}</dd>
+                <dt className="text-sm font-medium text-muted-foreground">Term</dt>
+                <dd className="text-sm">{loan.term} months</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-muted-foreground">Created</dt>
-                <dd className="text-sm">{formatDistanceToNow(loan.createdAt, { addSuffix: true })}</dd>
+                <dt className="text-sm font-medium text-muted-foreground">Payment Frequency</dt>
+                <dd className="text-sm capitalize">{loan.paymentFrequency}</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-muted-foreground">Due Amount</dt>
+                <dd className="text-sm">${loan.dueAmount.toLocaleString()}</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-muted-foreground">Minimum Payment</dt>
+                <dd className="text-sm">${loan.minPay.toLocaleString()}</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-muted-foreground">Next Payment Date</dt>
+                <dd className="text-sm">{loan.nextPaymentDate.toLocaleDateString()}</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-muted-foreground">DPD</dt>
+                <dd className="text-sm">{loan.dpd} days</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-muted-foreground">Disbursement Date</dt>
+                <dd className="text-sm">{loan.disbursementDate.toLocaleDateString()}</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-muted-foreground">Maturity Date</dt>
+                <dd className="text-sm">{loan.maturityDate.toLocaleDateString()}</dd>
               </div>
             </dl>
           </CardContent>

@@ -5,13 +5,14 @@ import { format } from 'date-fns';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PhoneCall, Mail, MessageSquare, MapPin, FileText } from 'lucide-react';
+import { ActionType } from '@/types/crm';
 
 interface Customer360ActivitiesProps {
   customerId: string;
 }
 
 const Customer360Activities: React.FC<Customer360ActivitiesProps> = ({ customerId }) => {
-  const { loans, cases, actions, tasks } = useCrm();
+  const { loans, cases, actions } = useCrm();
   
   // Get all loans for this customer
   const customerLoans = loans.filter(loan => loan.customerId === customerId);
@@ -23,37 +24,48 @@ const Customer360Activities: React.FC<Customer360ActivitiesProps> = ({ customerI
   
   // Get all actions related to these cases
   const customerActions = actions.filter(action => caseIds.includes(action.caseId));
-  
-  // Get all tasks for this customer
-  const customerTasks = tasks.filter(task => task.customerId === customerId);
 
-  const getActionIcon = (type: string) => {
+  const getActionIcon = (type: ActionType) => {
     switch (type) {
-      case 'CALL': return <PhoneCall className="h-4 w-4" />;
-      case 'EMAIL': return <Mail className="h-4 w-4" />;
-      case 'SMS': return <MessageSquare className="h-4 w-4" />;
-      case 'VISIT': return <MapPin className="h-4 w-4" />;
-      case 'LEGAL_FILING': return <FileText className="h-4 w-4" />;
-      default: return <PhoneCall className="h-4 w-4" />;
+      case ActionType.CALL:
+      case ActionType.CALL_FOLLOWUP:
+        return <PhoneCall className="h-4 w-4" />;
+      case ActionType.EMAIL:
+        return <Mail className="h-4 w-4" />;
+      case ActionType.SMS:
+        return <MessageSquare className="h-4 w-4" />;
+      case ActionType.VISIT:
+        return <MapPin className="h-4 w-4" />;
+      case ActionType.LEGAL_FILING:
+      case ActionType.LEGAL_NOTICE:
+        return <FileText className="h-4 w-4" />;
+      default:
+        return <PhoneCall className="h-4 w-4" />;
     }
   };
 
   const getOutcomeColor = (outcome: string) => {
     switch (outcome) {
-      case 'CONTACTED': return 'bg-green-500';
-      case 'PROMISE_TO_PAY': return 'bg-blue-500';
-      case 'NOT_CONTACTED': return 'bg-red-500';
-      case 'LEFT_MESSAGE': return 'bg-yellow-500';
-      case 'DISPUTE': return 'bg-orange-500';
-      case 'HARDSHIP_CLAIM': return 'bg-purple-500';
-      default: return 'bg-gray-500';
+      case 'CONTACTED':
+        return 'bg-green-500';
+      case 'PROMISE_TO_PAY':
+        return 'bg-blue-500';
+      case 'NOT_CONTACTED':
+        return 'bg-red-500';
+      case 'LEFT_MESSAGE':
+        return 'bg-yellow-500';
+      case 'DISPUTE':
+        return 'bg-orange-500';
+      case 'HARDSHIP_CLAIM':
+        return 'bg-purple-500';
+      default:
+        return 'bg-gray-500';
     }
   };
 
   return (
     <div className="space-y-6">
       <div className="space-y-4">
-        <h3 className="text-lg font-medium">Recent Activities</h3>
         {customerActions.map((action) => (
           <Card key={action.id} className="p-4">
             <div className="flex items-start gap-4">
@@ -64,7 +76,7 @@ const Customer360Activities: React.FC<Customer360ActivitiesProps> = ({ customerI
                 <div className="flex items-center justify-between">
                   <div className="font-medium capitalize">{action.type}</div>
                   <div className="text-sm text-muted-foreground">
-                    {format(new Date(action.actionDate), 'MMM dd, yyyy')}
+                    {format(action.actionDate, 'MMM dd, yyyy')}
                   </div>
                 </div>
                 <div className="text-sm text-muted-foreground">
@@ -88,49 +100,6 @@ const Customer360Activities: React.FC<Customer360ActivitiesProps> = ({ customerI
         {customerActions.length === 0 && (
           <div className="text-center text-muted-foreground py-4">
             No activities found
-          </div>
-        )}
-      </div>
-
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Tasks</h3>
-        {customerTasks.map((task) => (
-          <Card key={task.id} className="p-4">
-            <div className="flex items-start gap-4">
-              <div className="bg-muted p-2 rounded-md">
-                {getActionIcon(task.taskType.toUpperCase())}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <div className="font-medium capitalize">{task.taskType}</div>
-                  <Badge variant="outline">
-                    Due: {format(new Date(task.dueDate), 'MMM dd, yyyy')}
-                  </Badge>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Assigned to: {task.assignedTo}
-                </div>
-                <div className="mt-1 space-x-2">
-                  <Badge variant="secondary">
-                    {task.priority}
-                  </Badge>
-                  <Badge variant="outline">
-                    {task.status}
-                  </Badge>
-                </div>
-                {task.notes && (
-                  <div className="mt-2 text-sm bg-muted p-2 rounded">
-                    {task.notes}
-                  </div>
-                )}
-              </div>
-            </div>
-          </Card>
-        ))}
-        
-        {customerTasks.length === 0 && (
-          <div className="text-center text-muted-foreground py-4">
-            No tasks found
           </div>
         )}
       </div>

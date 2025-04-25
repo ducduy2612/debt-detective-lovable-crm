@@ -1,4 +1,3 @@
-
 import { 
   Customer, Loan, Payment, Case, ActionRecord, Agent, Task,
   Phone, Address, Email, Collateral, ActionType, ActionSubType, ActionResultType, Team
@@ -107,6 +106,77 @@ export const mockData = {
         }
       ],
       loans: [],
+      referenceCustomers: [
+        {
+          id: 'ref-001',
+          customerId: 'cust-001',
+          relationshipType: 'SPOUSE',
+          cif: 'CIF003',
+          type: 'INDIVIDUAL',
+          name: 'Jane Smith',
+          dateOfBirth: new Date('1982-08-20'),
+          nationalId: '987-65-4321',
+          gender: 'FEMALE',
+          phoneNumbers: [
+            {
+              id: 'phone-ref-001',
+              customerId: 'ref-001',
+              type: 'MOBILE',
+              number: '+1-555-123-4567',
+              isPrimary: true,
+              isVerified: true,
+              sourceSystem: 'CRM',
+              createdBy: 'SYSTEM',
+              updatedBy: 'SYSTEM',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              isEditable: true
+            }
+          ],
+          addresses: [],
+          emails: [],
+          sourceSystem: 'CRM',
+          createdBy: 'SYSTEM',
+          updatedBy: 'SYSTEM',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isEditable: true
+        },
+        {
+          id: 'ref-002',
+          customerId: 'cust-001',
+          relationshipType: 'EMPLOYER',
+          cif: 'CIF004',
+          type: 'ORGANIZATION',
+          companyName: 'Tech Corp Inc',
+          registrationNumber: 'REG123456',
+          taxId: 'TAX987654',
+          phoneNumbers: [
+            {
+              id: 'phone-ref-002',
+              customerId: 'ref-002',
+              type: 'WORK',
+              number: '+1-555-987-6543',
+              isPrimary: true,
+              isVerified: true,
+              sourceSystem: 'CRM',
+              createdBy: 'SYSTEM',
+              updatedBy: 'SYSTEM',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              isEditable: true
+            }
+          ],
+          addresses: [],
+          emails: [],
+          sourceSystem: 'CRM',
+          createdBy: 'SYSTEM',
+          updatedBy: 'SYSTEM',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isEditable: true
+        }
+      ],
       sourceSystem: 'CRM',
       createdBy: 'SYSTEM',
       updatedBy: 'SYSTEM',

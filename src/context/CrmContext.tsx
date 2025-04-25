@@ -1,8 +1,7 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { 
   Customer, Loan, Payment, Case, ActionRecord, Task,
-  Phone, Address, Email, Agent
+  Phone, Address, Email, Agent, Collateral
 } from '@/types/crm';
 import { mockData } from '@/services/mockData';
 import { getCurrentAgent } from '@/lib/adapters';
@@ -15,12 +14,11 @@ interface CrmContextType {
   tasks: Task[];
   payments: Payment[];
   agents: Agent[];
+  collaterals: Collateral[];
   currentAgent: Agent | null;
-  currentUser: Agent | null; // Added for backward compatibility
   selectedCustomer: Customer | null;
   selectedLoan: Loan | null;
   
-  // Methods
   setCurrentAgent: (agent: Agent | null) => void;
   selectCustomer: (customer: Customer | null) => void;
   selectLoan: (loan: Loan | null) => void;
@@ -36,11 +34,12 @@ const CrmContext = createContext<CrmContextType | undefined>(undefined);
 export const CrmProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [customers, setCustomers] = useState<Customer[]>(mockData.customers);
   const [loans, setLoans] = useState<Loan[]>(mockData.loans);
-  const [cases, setCases] = useState<Case[]>(mockData.cases || []);
+  const [cases, setCases] = useState<Case[]>(mockData.cases);
   const [actions, setActions] = useState<ActionRecord[]>(mockData.actions);
   const [tasks, setTasks] = useState<Task[]>(mockData.tasks);
   const [payments, setPayments] = useState<Payment[]>(mockData.payments);
-  const [agents, setAgents] = useState<Agent[]>(mockData.agents || []);
+  const [agents, setAgents] = useState<Agent[]>(mockData.agents);
+  const [collaterals, setCollaterals] = useState<Collateral[]>(mockData.collaterals);
   
   const defaultAgent = getCurrentAgent();
   const [currentAgent, setCurrentAgent] = useState<Agent | null>(defaultAgent);
@@ -172,8 +171,8 @@ export const CrmProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     tasks,
     payments,
     agents,
+    collaterals,
     currentAgent,
-    currentUser: currentAgent, // Added for backward compatibility
     selectedCustomer,
     selectedLoan,
     setCurrentAgent,

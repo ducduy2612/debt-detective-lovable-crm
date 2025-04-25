@@ -1,7 +1,6 @@
-
 import {
   Customer, Loan, Payment, Phone, Address, Email,
-  ActionType, ActionSubType, ActionResultType, ActionRecord, Agent
+  ActionType, ActionSubType, ActionResultType, ActionRecord, Agent, Team
 } from '@/types/crm';
 
 export const formatPhoneNumber = (phone: Phone): string => {
@@ -102,7 +101,7 @@ export const getCurrentAgent = (): Agent => {
     email: "current@example.com",
     phone: "123-456-7890",
     type: "AGENT",
-    team: "EARLY_STAGE_CALL",
+    team: Team.EARLY_STAGE_CALL,
     isActive: true,
     cases: [],
     actions: [],
