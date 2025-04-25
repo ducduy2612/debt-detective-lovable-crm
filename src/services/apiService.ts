@@ -4,18 +4,8 @@ import {
   Customer, Loan, Collateral, Payment,
   Case, ActionRecord, Agent, Task, Phone, Address, Email
 } from '@/types/crm';
-
 // Mock data for development
-const mockData = {
-  customers: [] as Customer[],
-  loans: [] as Loan[],
-  collaterals: [] as Collateral[],
-  payments: [] as Payment[],
-  cases: [] as Case[],
-  actions: [] as ActionRecord[],
-  agents: [] as Agent[],
-  tasks: [] as Task[],
-};
+import {mockData} from "@/services/mockdata";
 
 // API service methods with typed responses
 export const fetchCustomers = async (): Promise<Customer[]> => {
