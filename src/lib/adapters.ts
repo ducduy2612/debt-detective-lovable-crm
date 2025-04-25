@@ -63,4 +63,3 @@ export const getPrimaryPhone = (customer: Customer): Phone | undefined => {
 export const getPrimaryAddress = (customer: Customer): Address | undefined => {
   return customer.addresses.find(a => a.isPrimary);
 };
-

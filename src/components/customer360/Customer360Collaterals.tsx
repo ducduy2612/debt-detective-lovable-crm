@@ -15,7 +15,7 @@ interface Customer360CollateralsProps {
 }
 
 const Customer360Collaterals: React.FC<Customer360CollateralsProps> = ({ customerId }) => {
-  const { loans } = useCrm();
+  const { loans, collaterals } = useCrm();
   const customerLoans = loans.filter(loan => loan.customerId === customerId);
   
   // State for filters and pagination
@@ -27,21 +27,16 @@ const Customer360Collaterals: React.FC<Customer360CollateralsProps> = ({ custome
   
   const itemsPerPage = 10;
   
-  // Collect all collaterals from customer loans
-  const allCollaterals: Array<Collateral & { loanId: string }> = [];
-  customerLoans.forEach(loan => {
-    const loanCollaterals = loan.collaterals.map(collateral => ({
-      ...collateral,
-      loanId: loan.id
-    }));
-    allCollaterals.push(...loanCollaterals);
-  });
+  // Get all relevant collaterals
+  const customerCollaterals = collaterals.filter(
+    collateral => collateral.customerId === customerId
+  );
   
   // Get unique collateral types
-  const collateralTypes = Array.from(new Set(allCollaterals.map(c => c.type)));
+  const collateralTypes = Array.from(new Set(customerCollaterals.map(c => c.type)));
   
   // Filter collaterals
-  const filteredCollaterals = allCollaterals.filter(collateral => {
+  const filteredCollaterals = customerCollaterals.filter(collateral => {
     if (selectedLoanId !== 'all' && collateral.loanId !== selectedLoanId) return false;
     if (selectedType !== 'all' && collateral.type !== selectedType) return false;
     return true;
@@ -50,23 +45,11 @@ const Customer360Collaterals: React.FC<Customer360CollateralsProps> = ({ custome
   // Sort collaterals
   const sortedCollaterals = [...filteredCollaterals].sort((a, b) => {
     if (sortBy === 'date') {
-      // Get the latest valuation date for each collateral
-      const lastValuationDateA = a.valuations.length > 0 
-        ? new Date(a.valuations[a.valuations.length - 1].date).getTime() 
-        : 0;
-      const lastValuationDateB = b.valuations.length > 0 
-        ? new Date(b.valuations[b.valuations.length - 1].date).getTime() 
-        : 0;
-      return sortOrder === 'asc' ? lastValuationDateA - lastValuationDateB : lastValuationDateB - lastValuationDateA;
+      return sortOrder === 'asc' 
+        ? new Date(a.valuationDate).getTime() - new Date(b.valuationDate).getTime() 
+        : new Date(b.valuationDate).getTime() - new Date(a.valuationDate).getTime();
     } else {
-      // Get the latest valuation amount for each collateral
-      const lastValuationA = a.valuations.length > 0 
-        ? a.valuations[a.valuations.length - 1].amount 
-        : 0;
-      const lastValuationB = b.valuations.length > 0 
-        ? b.valuations[b.valuations.length - 1].amount 
-        : 0;
-      return sortOrder === 'asc' ? lastValuationA - lastValuationB : lastValuationB - lastValuationA;
+      return sortOrder === 'asc' ? a.value - b.value : b.value - a.value;
     }
   });
   
@@ -83,12 +66,6 @@ const Customer360Collaterals: React.FC<Customer360CollateralsProps> = ({ custome
       setSortBy(column);
       setSortOrder('desc');
     }
-  };
-  
-  // Get the latest valuation for a collateral
-  const getLatestValuation = (collateral: Collateral) => {
-    if (collateral.valuations.length === 0) return null;
-    return collateral.valuations[collateral.valuations.length - 1];
   };
   
   return (
@@ -179,7 +156,6 @@ const Customer360Collaterals: React.FC<Customer360CollateralsProps> = ({ custome
                     </TableHeader>
                     <TableBody>
                       {paginatedCollaterals.map((collateral) => {
-                        const latestValuation = getLatestValuation(collateral);
                         return (
                           <TableRow key={collateral.id}>
                             <TableCell className="font-medium">{collateral.id}</TableCell>
@@ -190,16 +166,10 @@ const Customer360Collaterals: React.FC<Customer360CollateralsProps> = ({ custome
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              {latestValuation
-                                ? `$${latestValuation.amount.toLocaleString()}`
-                                : "No valuation"
-                              }
+                              ${collateral.value.toLocaleString()}
                             </TableCell>
                             <TableCell>
-                              {latestValuation
-                                ? format(new Date(latestValuation.date), 'MMM dd, yyyy')
-                                : "N/A"
-                              }
+                              {format(new Date(collateral.valuationDate), 'MMM dd, yyyy')}
                             </TableCell>
                             <TableCell>{collateral.description}</TableCell>
                           </TableRow>
@@ -213,7 +183,6 @@ const Customer360Collaterals: React.FC<Customer360CollateralsProps> = ({ custome
               {/* Card view for mobile */}
               <div className="md:hidden space-y-3">
                 {paginatedCollaterals.map((collateral) => {
-                  const latestValuation = getLatestValuation(collateral);
                   return (
                     <div key={collateral.id} className="border rounded-lg p-4 space-y-2">
                       <div className="flex justify-between items-start">
@@ -229,19 +198,13 @@ const Customer360Collaterals: React.FC<Customer360CollateralsProps> = ({ custome
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Valuation:</span>
                         <span className="font-medium">
-                          {latestValuation
-                            ? `$${latestValuation.amount.toLocaleString()}`
-                            : "No valuation"
-                          }
+                          ${collateral.value.toLocaleString()}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Date:</span>
                         <span>
-                          {latestValuation
-                            ? format(new Date(latestValuation.date), 'MMM dd, yyyy')
-                            : "N/A"
-                          }
+                          {format(new Date(collateral.valuationDate), 'MMM dd, yyyy')}
                         </span>
                       </div>
                       <div className="flex justify-between items-start">
@@ -293,39 +256,60 @@ const Customer360Collaterals: React.FC<Customer360CollateralsProps> = ({ custome
         </CardContent>
       </Card>
       
-      {/* Collateral valuation history section */}
-      {paginatedCollaterals.length > 0 && paginatedCollaterals.some(c => c.valuations.length > 1) && (
+      {/* More detailed collateral information */}
+      {paginatedCollaterals.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl">Valuation History</CardTitle>
+            <CardTitle className="text-xl">Collateral Details</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {paginatedCollaterals
-                .filter(c => c.valuations.length > 1)
-                .map(collateral => (
-                  <div key={`history-${collateral.id}`} className="border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-medium">{collateral.description}</h4>
-                      <Badge variant="outline" className="capitalize">{collateral.type}</Badge>
-                    </div>
-                    <div className="space-y-3">
-                      {[...collateral.valuations]
-                        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                        .map((valuation, index) => (
-                          <div key={index} className="flex justify-between items-center border-b pb-2 last:border-0">
-                            <div className="text-muted-foreground">
-                              {format(new Date(valuation.date), 'MMM dd, yyyy')}
-                              {valuation.appraiser && ` • ${valuation.appraiser}`}
-                            </div>
-                            <div className="font-medium">${valuation.amount.toLocaleString()}</div>
-                          </div>
-                        ))
-                      }
-                    </div>
+              {paginatedCollaterals.map(collateral => (
+                <div key={`details-${collateral.id}`} className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium">{collateral.description}</h4>
+                    <Badge variant="outline" className="capitalize">{collateral.type}</Badge>
                   </div>
-                ))
-              }
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {collateral.make && (
+                      <div>
+                        <span className="text-sm text-muted-foreground">Make/Model:</span>
+                        <p className="text-sm">{collateral.make} {collateral.model}, {collateral.year}</p>
+                      </div>
+                    )}
+                    {collateral.vin && (
+                      <div>
+                        <span className="text-sm text-muted-foreground">VIN:</span>
+                        <p className="text-sm">{collateral.vin}</p>
+                      </div>
+                    )}
+                    {collateral.propertyType && (
+                      <div>
+                        <span className="text-sm text-muted-foreground">Property Type:</span>
+                        <p className="text-sm">{collateral.propertyType}</p>
+                      </div>
+                    )}
+                    {collateral.address && (
+                      <div>
+                        <span className="text-sm text-muted-foreground">Address:</span>
+                        <p className="text-sm">{collateral.address}</p>
+                      </div>
+                    )}
+                    {collateral.size && (
+                      <div>
+                        <span className="text-sm text-muted-foreground">Size:</span>
+                        <p className="text-sm">{collateral.size} sq ft</p>
+                      </div>
+                    )}
+                    {collateral.titleNumber && (
+                      <div>
+                        <span className="text-sm text-muted-foreground">Title Number:</span>
+                        <p className="text-sm">{collateral.titleNumber}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>

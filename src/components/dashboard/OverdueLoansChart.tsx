@@ -7,12 +7,12 @@ import { useCrm } from '@/context/CrmContext';
 const OverdueLoansChart: React.FC = () => {
   const { loans } = useCrm();
   
-  // Group loans by status
+  // Group loans by delinquencyStatus
   const groupedLoans = loans.reduce((acc, loan) => {
-    if (!acc[loan.status]) {
-      acc[loan.status] = 0;
+    if (!acc[loan.delinquencyStatus]) {
+      acc[loan.delinquencyStatus] = 0;
     }
-    acc[loan.status] += 1;
+    acc[loan.delinquencyStatus] += 1;
     return acc;
   }, {} as Record<string, number>);
   

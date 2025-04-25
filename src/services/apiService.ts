@@ -160,6 +160,7 @@ export const addCustomerAddress = async (
         customerId,
         type: addressData.type || 'HOME',
         addressLine1: addressData.addressLine1 || '',
+        addressLine2: addressData.addressLine2,
         city: addressData.city || '',
         state: addressData.state || '',
         district: addressData.district || '',
@@ -225,4 +226,3 @@ export const addCustomerEmail = async (
     }, 500);
   });
 };
-

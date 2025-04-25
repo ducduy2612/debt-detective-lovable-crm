@@ -11,6 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import type { Customer } from '@/types/crm';
+import { formatPhoneNumber, getEmailAddress } from '@/lib/adapters';
 
 interface CustomerTableProps {
   customers: Customer[];
@@ -30,8 +31,8 @@ export const CustomerTable: React.FC<CustomerTableProps> = ({ customers }) => {
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Contact Information</TableHead>
-            <TableHead>Occupation</TableHead>
-            <TableHead>Income</TableHead>
+            <TableHead>Customer ID</TableHead>
+            <TableHead>Status</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -41,24 +42,30 @@ export const CustomerTable: React.FC<CustomerTableProps> = ({ customers }) => {
                 className="font-medium cursor-pointer hover:text-primary"
                 onClick={() => handleCustomerClick(customer.id)}
               >
-                {customer.name}
+                {customer.name || customer.companyName}
               </TableCell>
               <TableCell>
                 <div className="space-y-1">
                   {customer.phoneNumbers.map((phone, index) => (
                     <div key={index} className="flex items-center text-sm">
                       <Phone className="h-3 w-3 mr-1" />
-                      <span>{phone.phoneNumber}</span>
+                      <span>{formatPhoneNumber(phone)}</span>
                       <span className="text-xs text-muted-foreground ml-1">({phone.type})</span>
                     </div>
                   ))}
+                  {customer.emails.length > 0 && (
+                    <div className="flex items-center text-sm">
+                      <MapPin className="h-3 w-3 mr-1" />
+                      <span>{getEmailAddress(customer)}</span>
+                    </div>
+                  )}
                 </div>
               </TableCell>
               <TableCell className="text-muted-foreground">
-                {customer.occupation || 'Not specified'}
+                {customer.cif}
               </TableCell>
               <TableCell className="text-muted-foreground">
-                {customer.income ? `$${customer.income.toLocaleString()}` : 'Not specified'}
+                {customer.status}
               </TableCell>
             </TableRow>
           ))}

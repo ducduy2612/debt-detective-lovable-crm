@@ -1,455 +1,494 @@
 
 import { 
-  Customer, Loan, CollectionAction, CollectionStrategy, Task, Payment, User, 
-  CustomerReference, CustomerContact, CustomerAddress, Collateral, DueAmount,
-  LoanStatusHistory, ProductType, LoanStatus, ActionType, ActionOutcome
+  Customer, Loan, Payment, Case, ActionRecord, Agent, Task,
+  Phone, Address, Email, Collateral, ActionType, ActionSubType, ActionResultType, Team
 } from '@/types/crm';
 
-// Helper to generate random dates within a range
-const randomDate = (start: Date, end: Date) => {
-  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-};
+// Generate today's date and some relative dates
+const today = new Date();
+const oneMonthAgo = new Date(today);
+oneMonthAgo.setMonth(today.getMonth() - 1);
 
-// Helper to get random enum value
-const randomEnum = <T>(anEnum: T): T[keyof T] => {
-  const enumValues = Object.values(anEnum) as unknown as T[keyof T][];
-  const randomIndex = Math.floor(Math.random() * enumValues.length);
-  return enumValues[randomIndex];
-};
+const twoMonthsAgo = new Date(today);
+twoMonthsAgo.setMonth(today.getMonth() - 2);
 
-// Generate random users
-export const generateUsers = (count: number): User[] => {
-  const roles: ('agent' | 'team_lead' | 'admin')[] = ['agent', 'team_lead', 'admin'];
-  const teams = ['East', 'West', 'North', 'South', 'Central'];
-  
-  return Array.from({ length: count }, (_, i) => ({
-    id: `user-${i + 1}`,
-    name: `User ${i + 1}`,
-    email: `user${i + 1}@debtdetective.com`,
-    role: roles[Math.floor(Math.random() * (roles.length - (i === 0 ? 0 : 1)))], // Ensure at least one admin
-    team: teams[Math.floor(Math.random() * teams.length)]
-  }));
-};
+const threeMonthsAgo = new Date(today);
+threeMonthsAgo.setMonth(today.getMonth() - 3);
 
-// Generate random customers
-export const generateCustomers = (count: number): Customer[] => {
-  return Array.from({ length: count }, (_, i) => {
-    const phoneNumbers: CustomerContact[] = [
-      {
-        phoneNumber: `555-${100 + Math.floor(Math.random() * 900)}-${1000 + Math.floor(Math.random() * 9000)}`,
-        type: 'primary',
-        isValid: Math.random() > 0.1,
-      },
-      {
-        phoneNumber: `555-${100 + Math.floor(Math.random() * 900)}-${1000 + Math.floor(Math.random() * 9000)}`,
-        type: 'secondary',
-        isValid: Math.random() > 0.2,
-        addedBy: `user-${Math.floor(Math.random() * 5) + 1}`,
-        addedOn: randomDate(new Date(2023, 0, 1), new Date()),
-      }
-    ];
+const sixMonthsAgo = new Date(today);
+sixMonthsAgo.setMonth(today.getMonth() - 6);
 
-    const addresses: CustomerAddress[] = [
-      {
-        id: `addr-${i}-1`,
-        type: 'home',
-        address: `${1000 + Math.floor(Math.random() * 9000)} Main St`,
-        city: 'Metropolis',
-        state: 'NY',
-        zipCode: `${10000 + Math.floor(Math.random() * 90000)}`,
-        isVerified: Math.random() > 0.2,
-      }
-    ];
+const oneYearAgo = new Date(today);
+oneYearAgo.setFullYear(today.getFullYear() - 1);
 
-    if (Math.random() > 0.7) {
-      addresses.push({
-        id: `addr-${i}-2`,
-        type: 'work',
-        address: `${100 + Math.floor(Math.random() * 900)} Business Ave`,
-        city: 'Metropolis',
-        state: 'NY',
-        zipCode: `${10000 + Math.floor(Math.random() * 90000)}`,
-        isVerified: Math.random() > 0.5,
-        addedBy: `user-${Math.floor(Math.random() * 5) + 1}`,
-        addedOn: randomDate(new Date(2023, 0, 1), new Date()),
-      });
-    }
+const nextMonth = new Date(today);
+nextMonth.setMonth(today.getMonth() + 1);
 
-    const references: CustomerReference[] = [];
-    const relationships = ['spouse', 'parent', 'sibling', 'child', 'friend'];
-    
-    if (Math.random() > 0.3) {
-      references.push({
-        id: `ref-${i}-1`,
-        name: `Reference ${i}-1`,
-        relationship: relationships[Math.floor(Math.random() * relationships.length)],
-        phoneNumbers: [`555-${100 + Math.floor(Math.random() * 900)}-${1000 + Math.floor(Math.random() * 9000)}`],
-        email: Math.random() > 0.5 ? `reference${i}1@example.com` : undefined,
-      });
-    }
-
-    return {
-      id: `cust-${i + 1}`,
-      name: `Customer ${i + 1}`,
-      phoneNumbers,
-      email: Math.random() > 0.2 ? `customer${i + 1}@example.com` : undefined,
-      addresses,
-      occupation: Math.random() > 0.3 ? ['Teacher', 'Engineer', 'Doctor', 'Sales', 'Manager'][Math.floor(Math.random() * 5)] : undefined,
-      income: Math.random() > 0.3 ? Math.floor(Math.random() * 100000) + 30000 : undefined,
-      references,
-    };
-  });
-};
-
-// Generate random loans
-export const generateLoans = (customers: Customer[]): Loan[] => {
-  const productTypes: ProductType[] = ['loan', 'credit card', 'overdraft'];
-  const statuses: LoanStatus[] = ['current', 'overdue', 'default', 'legal notice', 'closed'];
-  
-  return customers.flatMap((customer, i) => {
-    // Each customer has 1-3 loans
-    const loanCount = Math.floor(Math.random() * 3) + 1;
-    
-    return Array.from({ length: loanCount }, (_, j) => {
-      const createdOn = randomDate(new Date(2020, 0, 1), new Date(2023, 0, 1));
-      const status = statuses[Math.floor(Math.random() * (statuses.length - 1))]; // Exclude 'closed' more often
-      
-      // Generate status history
-      const statusHistory: LoanStatusHistory[] = [];
-      statusHistory.push({
-        status: 'current',
-        changedOn: createdOn,
-      });
-      
-      if (status !== 'current') {
-        const overdueDays = Math.floor(Math.random() * 120) + 1;
-        statusHistory.push({
-          status: 'overdue',
-          changedOn: new Date(createdOn.getTime() + Math.random() * 90 * 24 * 60 * 60 * 1000),
-          daysOverdue: overdueDays,
-        });
-        
-        if (status === 'default' || status === 'legal notice') {
-          statusHistory.push({
-            status: 'default',
-            changedOn: new Date(statusHistory[1].changedOn.getTime() + Math.random() * 60 * 24 * 60 * 60 * 1000),
-            daysOverdue: overdueDays + Math.floor(Math.random() * 60) + 30,
-          });
-          
-          if (status === 'legal notice') {
-            statusHistory.push({
-              status: 'legal notice',
-              changedOn: new Date(statusHistory[2].changedOn.getTime() + Math.random() * 30 * 24 * 60 * 60 * 1000),
-              daysOverdue: overdueDays + Math.floor(Math.random() * 90) + 60,
-            });
-          }
+// Sample data that follows our new type definitions
+export const mockData = {
+  customers: [
+    {
+      id: 'cust-001',
+      cif: 'CIF001',
+      type: 'INDIVIDUAL' as const,
+      name: 'John Smith',
+      dateOfBirth: new Date('1980-05-15'),
+      nationalId: '123-45-6789',
+      gender: 'MALE',
+      segment: 'RETAIL',
+      status: 'ACTIVE' as const,
+      phoneNumbers: [
+        {
+          id: 'phone-001',
+          customerId: 'cust-001',
+          type: 'MOBILE' as const,
+          number: '+1234567890',
+          isPrimary: true,
+          isVerified: true,
+          verificationDate: oneMonthAgo,
+          sourceSystem: 'CRM',
+          createdBy: 'SYSTEM',
+          updatedBy: 'SYSTEM',
+          createdAt: oneYearAgo,
+          updatedAt: oneMonthAgo,
+          isEditable: true
+        },
+        {
+          id: 'phone-002',
+          customerId: 'cust-001',
+          type: 'HOME' as const,
+          number: '+1987654321',
+          isPrimary: false,
+          isVerified: false,
+          sourceSystem: 'CRM',
+          createdBy: 'SYSTEM',
+          updatedBy: 'SYSTEM',
+          createdAt: oneYearAgo,
+          updatedAt: oneYearAgo,
+          isEditable: true
         }
-      }
-      
-      // Generate due amounts (3-12 payment periods)
-      const dueAmountCount = Math.floor(Math.random() * 10) + 3;
-      const dueAmounts: DueAmount[] = Array.from({ length: dueAmountCount }, (_, k) => {
-        const dueDate = new Date(createdOn.getTime() + k * 30 * 24 * 60 * 60 * 1000);
-        const totalAmount = Math.floor(Math.random() * 1000) + 200;
-        const principal = Math.floor(totalAmount * 0.7);
-        const interest = totalAmount - principal;
-        const isPaid = dueDate < new Date() && (k < dueAmountCount - (status === 'current' ? 0 : 3));
-        
-        return {
-          id: `due-${i}-${j}-${k}`,
-          dueDate,
-          totalAmount,
-          principal,
-          interest,
-          fines: !isPaid && dueDate < new Date() ? Math.floor(Math.random() * 50) + 10 : 0,
-          isPaid,
-          paidOn: isPaid ? new Date(dueDate.getTime() + Math.random() * 5 * 24 * 60 * 60 * 1000) : undefined,
-        };
-      });
-      
-      // Generate collaterals (0-2 per loan)
-      const collateralCount = Math.floor(Math.random() * 3);
-      const collaterals: Collateral[] = Array.from({ length: collateralCount }, (_, k) => {
-        const collateralTypes = ['vehicle', 'property', 'jewelry', 'savings', 'guarantor'];
-        const collateralType = collateralTypes[Math.floor(Math.random() * collateralTypes.length)];
-        
-        return {
-          id: `coll-${i}-${j}-${k}`,
-          type: collateralType,
-          description: `${collateralType.charAt(0).toUpperCase() + collateralType.slice(1)} collateral for loan`,
-          valuations: [
-            {
-              amount: Math.floor(Math.random() * 50000) + 5000,
-              date: new Date(createdOn.getTime() - Math.random() * 30 * 24 * 60 * 60 * 1000),
-              appraiser: `Appraiser ${Math.floor(Math.random() * 5) + 1}`,
-            }
-          ],
-        };
-      });
-      
-      // Calculate outstanding amount based on due amounts and status
-      const outstandingAmount = dueAmounts.reduce((sum, due) => {
-        if (!due.isPaid) {
-          return sum + due.totalAmount + (due.fines || 0);
+      ],
+      addresses: [
+        {
+          id: 'addr-001',
+          customerId: 'cust-001',
+          type: 'HOME' as const,
+          addressLine1: '123 Main St',
+          addressLine2: 'Apt 4B',
+          city: 'New York',
+          state: 'NY',
+          district: '10001',
+          country: 'US',
+          isPrimary: true,
+          isVerified: true,
+          verificationDate: sixMonthsAgo,
+          sourceSystem: 'CRM',
+          createdBy: 'SYSTEM',
+          updatedBy: 'SYSTEM',
+          createdAt: oneYearAgo,
+          updatedAt: sixMonthsAgo,
+          isEditable: true
         }
-        return sum;
-      }, 0);
-      
-      return {
-        id: `loan-${i + 1}-${j + 1}`,
-        customerId: customer.id,
-        productType: productTypes[Math.floor(Math.random() * productTypes.length)],
-        interestRate: Math.floor(Math.random() * 15) + 5,
-        outstandingAmount,
-        status,
-        statusHistory,
-        dueAmounts,
-        collaterals,
-        createdOn,
-      };
-    });
-  });
-};
-
-// Generate collection strategies
-export const generateStrategies = (users: User[]): CollectionStrategy[] => {
-  const teamLeads = users.filter(user => user.role === 'team_lead');
-  
-  return [
-    {
-      id: 'strategy-1',
-      name: 'Early Stage Collection',
-      description: 'Gentle approach for accounts 1-30 days overdue',
-      allowedActions: ['call', 'email', 'SMS'],
-      priorityLevel: 1,
-      criteria: {
-        minOverdueDays: 1,
-        maxOverdueDays: 30,
-        productTypes: ['loan', 'credit card', 'overdraft'],
-      },
-      createdBy: teamLeads[0]?.id || 'user-1',
-      createdOn: new Date(2023, 0, 15),
-      isActive: true,
-    },
-    {
-      id: 'strategy-2',
-      name: 'Mid Stage Collection',
-      description: 'More direct approach for accounts 31-60 days overdue',
-      allowedActions: ['call', 'email', 'SMS', 'visit'],
-      priorityLevel: 2,
-      criteria: {
-        minOverdueDays: 31,
-        maxOverdueDays: 60,
-        productTypes: ['loan', 'credit card', 'overdraft'],
-      },
-      createdBy: teamLeads[0]?.id || 'user-1',
-      createdOn: new Date(2023, 0, 15),
-      isActive: true,
-    },
-    {
-      id: 'strategy-3',
-      name: 'Late Stage Collection',
-      description: 'Intensive approach for accounts 61-90 days overdue',
-      allowedActions: ['call', 'visit', 'legal filing'],
-      priorityLevel: 3,
-      criteria: {
-        minOverdueDays: 61,
-        maxOverdueDays: 90,
-        minAmount: 1000,
-        productTypes: ['loan', 'overdraft'],
-      },
-      createdBy: teamLeads[1]?.id || 'user-2',
-      createdOn: new Date(2023, 0, 20),
-      isActive: true,
-    },
-    {
-      id: 'strategy-4',
-      name: 'High-Value Default',
-      description: 'Strategy for high-value loans in default',
-      allowedActions: ['visit', 'legal filing'],
-      priorityLevel: 4,
-      criteria: {
-        minOverdueDays: 91,
-        minAmount: 10000,
-        productTypes: ['loan'],
-      },
-      createdBy: teamLeads[1]?.id || 'user-2',
-      createdOn: new Date(2023, 1, 5),
-      isActive: true,
-    },
-  ];
-};
-
-// Generate tasks based on loans and strategies
-export const generateTasks = (loans: Loan[], users: User[], strategies: CollectionStrategy[]): Task[] => {
-  const agents = users.filter(user => user.role === 'agent');
-  const tasks: Task[] = [];
-  
-  loans.forEach(loan => {
-    if (loan.status === 'overdue' || loan.status === 'default') {
-      // Find applicable strategy
-      const overdueDays = loan.statusHistory
-        .filter(h => h.status === 'overdue' || h.status === 'default')
-        .reduce((max, h) => Math.max(max, h.daysOverdue || 0), 0);
-      
-      const strategy = strategies.find(s => {
-        return (!s.criteria.minOverdueDays || overdueDays >= s.criteria.minOverdueDays) &&
-               (!s.criteria.maxOverdueDays || overdueDays <= s.criteria.maxOverdueDays) &&
-               (!s.criteria.minAmount || loan.outstandingAmount >= s.criteria.minAmount) &&
-               (!s.criteria.maxAmount || loan.outstandingAmount <= s.criteria.maxAmount) &&
-               (!s.criteria.productTypes || s.criteria.productTypes.includes(loan.productType));
-      });
-      
-      if (strategy) {
-        // Create 1-3 tasks per loan
-        const taskCount = Math.floor(Math.random() * 3) + 1;
-        
-        for (let i = 0; i < taskCount; i++) {
-          const actionType = strategy.allowedActions[Math.floor(Math.random() * strategy.allowedActions.length)];
-          const dueDate = new Date();
-          dueDate.setDate(dueDate.getDate() + Math.floor(Math.random() * 7) + 1);
-          
-          tasks.push({
-            id: `task-${loan.id}-${i}`,
-            loanId: loan.id,
-            customerId: loan.customerId,
-            assignedTo: agents[Math.floor(Math.random() * agents.length)].id,
-            taskType: actionType,
-            dueDate,
-            priority: ['low', 'medium', 'high', 'urgent'][Math.min(Math.floor(overdueDays / 30), 3) as number] as 'low' | 'medium' | 'high' | 'urgent',
-            status: Math.random() > 0.7 ? 'completed' : (Math.random() > 0.5 ? 'in progress' : 'pending'),
-            notes: `Follow up on ${actionType} for loan ${loan.id}`,
-            strategyId: strategy.id,
-          });
+      ],
+      emails: [
+        {
+          id: 'email-001',
+          customerId: 'cust-001',
+          address: 'john.smith@example.com',
+          isPrimary: true,
+          isVerified: true,
+          verificationDate: oneMonthAgo,
+          sourceSystem: 'CRM',
+          createdBy: 'SYSTEM',
+          updatedBy: 'SYSTEM',
+          createdAt: oneYearAgo,
+          updatedAt: oneMonthAgo,
+          isEditable: true
         }
-      }
+      ],
+      loans: [],
+      sourceSystem: 'CRM',
+      createdBy: 'SYSTEM',
+      updatedBy: 'SYSTEM',
+      createdAt: oneYearAgo,
+      updatedAt: oneYearAgo,
+      isEditable: true
+    },
+    {
+      id: 'cust-002',
+      cif: 'CIF002',
+      type: 'INDIVIDUAL' as const,
+      name: 'Jane Doe',
+      dateOfBirth: new Date('1985-02-20'),
+      nationalId: '987-65-4321',
+      gender: 'FEMALE',
+      segment: 'RETAIL',
+      status: 'ACTIVE' as const,
+      phoneNumbers: [
+        {
+          id: 'phone-003',
+          customerId: 'cust-002',
+          type: 'MOBILE' as const,
+          number: '+1555123456',
+          isPrimary: true,
+          isVerified: true,
+          sourceSystem: 'CRM',
+          createdBy: 'SYSTEM',
+          updatedBy: 'SYSTEM',
+          createdAt: oneYearAgo,
+          updatedAt: oneMonthAgo,
+          isEditable: true
+        }
+      ],
+      addresses: [
+        {
+          id: 'addr-002',
+          customerId: 'cust-002',
+          type: 'HOME' as const,
+          addressLine1: '456 Oak Ave',
+          city: 'Chicago',
+          state: 'IL',
+          district: '60601',
+          country: 'US',
+          isPrimary: true,
+          isVerified: false,
+          sourceSystem: 'CRM',
+          createdBy: 'SYSTEM',
+          updatedBy: 'SYSTEM',
+          createdAt: oneYearAgo,
+          updatedAt: oneYearAgo,
+          isEditable: true
+        }
+      ],
+      emails: [
+        {
+          id: 'email-002',
+          customerId: 'cust-002',
+          address: 'jane.doe@example.com',
+          isPrimary: true,
+          isVerified: true,
+          sourceSystem: 'CRM',
+          createdBy: 'SYSTEM',
+          updatedBy: 'SYSTEM',
+          createdAt: oneYearAgo,
+          updatedAt: oneYearAgo,
+          isEditable: true
+        }
+      ],
+      loans: [],
+      sourceSystem: 'CRM',
+      createdBy: 'SYSTEM',
+      updatedBy: 'SYSTEM',
+      createdAt: oneYearAgo,
+      updatedAt: twoMonthsAgo,
+      isEditable: true
     }
-  });
-  
-  return tasks;
-};
+  ] as Customer[],
 
-// Generate collection actions
-export const generateActions = (loans: Loan[], users: User[], tasks: Task[]): CollectionAction[] => {
-  const agents = users.filter(user => user.role === 'agent');
-  const actionTypes: ActionType[] = ['call', 'email', 'SMS', 'visit', 'legal filing'];
-  const outcomes: ActionOutcome[] = ['successful', 'unsuccessful', 'no answer', 'promise to pay', 'dispute', 'cannot pay'];
-  
-  const actions: CollectionAction[] = [];
-  
-  // First, create actions for completed tasks
-  const completedTasks = tasks.filter(task => task.status === 'completed');
-  
-  completedTasks.forEach(task => {
-    const loan = loans.find(l => l.id === task.loanId);
-    if (loan) {
-      const agent = users.find(u => u.id === task.assignedTo) || agents[Math.floor(Math.random() * agents.length)];
-      
-      actions.push({
-        id: `action-task-${task.id}`,
-        loanId: task.loanId,
-        customerId: task.customerId,
-        type: task.taskType,
-        date: task.dueDate,
-        agentId: agent.id,
-        agentName: agent.name,
-        outcome: outcomes[Math.floor(Math.random() * outcomes.length)],
-        notes: Math.random() > 0.3 ? `Completed task: ${task.notes}` : undefined,
-        followUpDate: Math.random() > 0.7 ? new Date(task.dueDate.getTime() + (Math.floor(Math.random() * 14) + 1) * 24 * 60 * 60 * 1000) : undefined,
-        gpsLocation: task.taskType === 'visit' ? {
-          latitude: 40.7128 + (Math.random() - 0.5) * 0.1,
-          longitude: -74.006 + (Math.random() - 0.5) * 0.1,
-        } : undefined,
-      });
+  loans: [
+    {
+      id: 'loan-001',
+      customerId: 'cust-001',
+      accountNumber: 'ACCT001',
+      productType: 'personal loan',
+      originalAmount: 15000,
+      currency: 'USD',
+      disbursementDate: oneYearAgo,
+      maturityDate: new Date(today.getFullYear() + 2, today.getMonth(), today.getDate()),
+      interestRate: 5.75,
+      term: 36,
+      paymentFrequency: 'monthly',
+      limit: 15000,
+      currentBalance: 10200,
+      dueAmount: 450,
+      minPay: 450,
+      nextPaymentDate: nextMonth,
+      dpd: 0,
+      delinquencyStatus: 'current',
+      cases: [],
+      sourceSystem: 'CRM',
+      createdBy: 'SYSTEM',
+      updatedBy: 'SYSTEM',
+      createdAt: oneYearAgo,
+      updatedAt: oneMonthAgo,
+      isEditable: true
+    },
+    {
+      id: 'loan-002',
+      customerId: 'cust-001',
+      accountNumber: 'ACCT002',
+      productType: 'credit card',
+      originalAmount: 5000,
+      currency: 'USD',
+      disbursementDate: sixMonthsAgo,
+      maturityDate: new Date(today.getFullYear() + 4, today.getMonth(), today.getDate()),
+      interestRate: 18.99,
+      term: 0,
+      paymentFrequency: 'monthly',
+      limit: 5000,
+      currentBalance: 3500,
+      dueAmount: 350,
+      minPay: 150,
+      nextPaymentDate: new Date(today.getTime() + 5 * 24 * 60 * 60 * 1000),
+      dpd: 30,
+      delinquencyStatus: 'overdue',
+      cases: [],
+      sourceSystem: 'CRM',
+      createdBy: 'SYSTEM',
+      updatedBy: 'SYSTEM',
+      createdAt: sixMonthsAgo,
+      updatedAt: oneMonthAgo,
+      isEditable: true
+    },
+    {
+      id: 'loan-003',
+      customerId: 'cust-002',
+      accountNumber: 'ACCT003',
+      productType: 'mortgage',
+      originalAmount: 250000,
+      currency: 'USD',
+      disbursementDate: twoMonthsAgo,
+      maturityDate: new Date(today.getFullYear() + 30, today.getMonth(), today.getDate()),
+      interestRate: 3.5,
+      term: 360,
+      paymentFrequency: 'monthly',
+      limit: 250000,
+      currentBalance: 248000,
+      dueAmount: 1100,
+      minPay: 1100,
+      nextPaymentDate: nextMonth,
+      dpd: 0,
+      delinquencyStatus: 'current',
+      cases: [],
+      sourceSystem: 'CRM',
+      createdBy: 'SYSTEM',
+      updatedBy: 'SYSTEM',
+      createdAt: twoMonthsAgo,
+      updatedAt: twoMonthsAgo,
+      isEditable: true
     }
-  });
-  
-  // Then add some random historical actions
-  loans.forEach(loan => {
-    if (loan.status !== 'current' && loan.status !== 'closed') {
-      const actionCount = Math.floor(Math.random() * 5) + 2;
-      
-      for (let i = 0; i < actionCount; i++) {
-        const agent = agents[Math.floor(Math.random() * agents.length)];
-        const actionType = actionTypes[Math.floor(Math.random() * (actionTypes.length - (Math.random() > 0.8 ? 0 : 1)))]; // Less legal filings
-        const date = new Date(new Date().getTime() - (Math.floor(Math.random() * 60) + 1) * 24 * 60 * 60 * 1000);
-        
-        actions.push({
-          id: `action-rand-${loan.id}-${i}`,
-          loanId: loan.id,
-          customerId: loan.customerId,
-          type: actionType,
-          date,
-          agentId: agent.id,
-          agentName: agent.name,
-          outcome: outcomes[Math.floor(Math.random() * outcomes.length)],
-          notes: Math.random() > 0.5 ? `Follow-up on ${loan.productType}. Customer ${Math.random() > 0.5 ? 'was cooperative' : 'refused to cooperate'}.` : undefined,
-          followUpDate: Math.random() > 0.7 ? new Date(date.getTime() + (Math.floor(Math.random() * 14) + 1) * 24 * 60 * 60 * 1000) : undefined,
-          gpsLocation: actionType === 'visit' ? {
-            latitude: 40.7128 + (Math.random() - 0.5) * 0.1,
-            longitude: -74.006 + (Math.random() - 0.5) * 0.1,
-          } : undefined,
-        });
-      }
+  ] as Loan[],
+
+  collaterals: [
+    {
+      id: 'coll-001',
+      collateralNumber: 'COL001',
+      customerId: 'cust-002',
+      loanId: 'loan-003',
+      type: 'real estate',
+      description: 'Residential property at 456 Oak Ave, Chicago',
+      value: 300000,
+      valuationDate: twoMonthsAgo,
+      propertyType: 'Single family home',
+      address: '456 Oak Ave, Chicago, IL 60601',
+      size: 2000,
+      titleNumber: 'T123456',
+      valuations: [
+        {
+          amount: 300000,
+          date: twoMonthsAgo,
+          appraiser: 'City Appraisers Inc.'
+        }
+      ],
+      sourceSystem: 'CRM',
+      createdBy: 'SYSTEM',
+      updatedBy: 'SYSTEM',
+      createdAt: twoMonthsAgo,
+      updatedAt: twoMonthsAgo,
+      isEditable: true
+    },
+    {
+      id: 'coll-002',
+      collateralNumber: 'COL002',
+      customerId: 'cust-001',
+      loanId: 'loan-001',
+      type: 'vehicle',
+      description: '2021 Toyota Camry',
+      value: 25000,
+      valuationDate: oneYearAgo,
+      make: 'Toyota',
+      model: 'Camry',
+      year: 2021,
+      vin: 'ABC123456DEF78901',
+      licensePlate: 'XYZ-123',
+      valuations: [
+        {
+          amount: 27000,
+          date: oneYearAgo,
+          appraiser: 'Auto Valuations LLC'
+        },
+        {
+          amount: 25000,
+          date: sixMonthsAgo,
+          appraiser: 'Auto Valuations LLC'
+        }
+      ],
+      sourceSystem: 'CRM',
+      createdBy: 'SYSTEM',
+      updatedBy: 'SYSTEM',
+      createdAt: oneYearAgo,
+      updatedAt: sixMonthsAgo,
+      isEditable: true
     }
-  });
-  
-  return actions;
-};
+  ] as Collateral[],
 
-// Generate payments
-export const generatePayments = (loans: Loan[]): Payment[] => {
-  const payments: Payment[] = [];
-  const paymentMethods = ['cash', 'bank transfer', 'check', 'direct debit', 'credit card'];
-  
-  loans.forEach(loan => {
-    // Create payments for paid due amounts
-    loan.dueAmounts.filter(due => due.isPaid).forEach(due => {
-      payments.push({
-        id: `payment-${due.id}`,
-        loanId: loan.id,
-        amount: due.totalAmount,
-        date: due.paidOn!,
-        method: paymentMethods[Math.floor(Math.random() * paymentMethods.length)] as 'cash' | 'bank transfer' | 'check' | 'direct debit' | 'credit card',
-        referenceNumber: `REF-${Math.floor(Math.random() * 1000000)}`,
-      });
-    });
-    
-    // Add some partial payments for overdue amounts
-    if (loan.status === 'overdue' || loan.status === 'default') {
-      const unpaidDues = loan.dueAmounts.filter(due => !due.isPaid);
-      
-      if (unpaidDues.length > 0 && Math.random() > 0.5) {
-        const due = unpaidDues[0];
-        const partialAmount = Math.floor(due.totalAmount * (Math.random() * 0.5 + 0.1));
-        
-        payments.push({
-          id: `payment-partial-${due.id}`,
-          loanId: loan.id,
-          amount: partialAmount,
-          date: new Date(due.dueDate.getTime() + Math.random() * 30 * 24 * 60 * 60 * 1000),
-          method: paymentMethods[Math.floor(Math.random() * paymentMethods.length)] as 'cash' | 'bank transfer' | 'check' | 'direct debit' | 'credit card',
-          referenceNumber: `REF-PARTIAL-${Math.floor(Math.random() * 1000000)}`,
-        });
-      }
+  cases: [
+    {
+      id: 'case-001',
+      loanId: 'loan-002',
+      caseNumber: 'CS001',
+      status: 'OPEN',
+      priority: 'MEDIUM',
+      openDate: oneMonthAgo,
+      actions: [],
+      payments: []
+    },
+  ] as Case[],
+
+  actions: [
+    {
+      id: 'action-001',
+      caseId: 'case-001',
+      type: ActionType.CALL,
+      subtype: ActionSubType.CALL_OUTBOUND,
+      actionResult: ActionResultType.PROMISE_TO_PAY,
+      actionDate: oneMonthAgo,
+      notes: 'Customer promised to pay by next Friday',
+      createdAt: oneMonthAgo,
+      updatedAt: oneMonthAgo,
+      createdBy: 'agent-001',
+      updatedBy: 'agent-001'
+    },
+    {
+      id: 'action-002',
+      caseId: 'case-001',
+      type: ActionType.SMS,
+      subtype: ActionSubType.SMS_REMINDER,
+      actionResult: ActionResultType.COMPLETED,
+      actionDate: new Date(oneMonthAgo.getTime() + 2 * 24 * 60 * 60 * 1000),
+      notes: 'Payment reminder sent',
+      createdAt: new Date(oneMonthAgo.getTime() + 2 * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(oneMonthAgo.getTime() + 2 * 24 * 60 * 60 * 1000),
+      createdBy: 'agent-001',
+      updatedBy: 'agent-001'
     }
-  });
-  
-  return payments;
-};
+  ] as ActionRecord[],
 
-// Generate all mock data
-export const generateMockData = () => {
-  const users = generateUsers(10);
-  const customers = generateCustomers(20);
-  const loans = generateLoans(customers);
-  const strategies = generateStrategies(users);
-  const tasks = generateTasks(loans, users, strategies);
-  const actions = generateActions(loans, users, tasks);
-  const payments = generatePayments(loans);
-  
-  return { users, customers, loans, strategies, tasks, actions, payments };
-};
+  payments: [
+    {
+      id: 'payment-001',
+      loanId: 'loan-001',
+      amount: 450,
+      currency: 'USD',
+      paymentDate: threeMonthsAgo,
+      paymentMethod: 'bank transfer',
+      referenceNumber: 'TRX12345',
+      status: 'COMPLETED',
+      principalAmount: 350,
+      interestAmount: 100,
+      feesAmount: 0,
+      penaltyAmount: 0,
+      sourceSystem: 'CRM',
+      createdBy: 'SYSTEM',
+      updatedBy: 'SYSTEM',
+      createdAt: threeMonthsAgo,
+      updatedAt: threeMonthsAgo,
+      isEditable: false
+    },
+    {
+      id: 'payment-002',
+      loanId: 'loan-001',
+      amount: 450,
+      currency: 'USD',
+      paymentDate: twoMonthsAgo,
+      paymentMethod: 'credit card',
+      referenceNumber: 'TRX12346',
+      status: 'COMPLETED',
+      principalAmount: 355,
+      interestAmount: 95,
+      feesAmount: 0,
+      penaltyAmount: 0,
+      sourceSystem: 'CRM',
+      createdBy: 'SYSTEM',
+      updatedBy: 'SYSTEM',
+      createdAt: twoMonthsAgo,
+      updatedAt: twoMonthsAgo,
+      isEditable: false
+    },
+    {
+      id: 'payment-003',
+      loanId: 'loan-001',
+      amount: 450,
+      currency: 'USD',
+      paymentDate: oneMonthAgo,
+      paymentMethod: 'bank transfer',
+      referenceNumber: 'TRX12347',
+      status: 'COMPLETED',
+      principalAmount: 360,
+      interestAmount: 90,
+      feesAmount: 0,
+      penaltyAmount: 0,
+      sourceSystem: 'CRM',
+      createdBy: 'SYSTEM',
+      updatedBy: 'SYSTEM',
+      createdAt: oneMonthAgo,
+      updatedAt: oneMonthAgo,
+      isEditable: false
+    }
+  ] as Payment[],
 
-// Initialize mock data
-export const mockData = generateMockData();
+  agents: [
+    {
+      id: 'agent-001',
+      employeeId: 'EMP001',
+      name: 'Michael Rodriguez',
+      email: 'michael.r@collect.com',
+      phone: '+1234567000',
+      type: 'AGENT',
+      team: Team.EARLY_STAGE_CALL,
+      isActive: true,
+      cases: [],
+      actions: [],
+      createdAt: oneYearAgo,
+      updatedAt: oneMonthAgo
+    },
+    {
+      id: 'agent-002',
+      employeeId: 'EMP002',
+      name: 'Sarah Johnson',
+      email: 'sarah.j@collect.com',
+      phone: '+1234567001',
+      type: 'SUPERVISOR',
+      team: Team.SUPERVISOR,
+      isActive: true,
+      cases: [],
+      actions: [],
+      createdAt: oneYearAgo,
+      updatedAt: threeMonthsAgo
+    }
+  ] as Agent[],
+
+  tasks: [
+    {
+      id: 'task-001',
+      customerId: 'cust-001',
+      loanId: 'loan-002',
+      taskType: 'call',
+      dueDate: nextMonth,
+      priority: 'high',
+      status: 'pending',
+      assignedTo: 'agent-001',
+      notes: 'Follow up on payment promise'
+    },
+    {
+      id: 'task-002',
+      customerId: 'cust-002',
+      taskType: 'visit',
+      dueDate: new Date(nextMonth.getTime() + 5 * 24 * 60 * 60 * 1000),
+      priority: 'medium',
+      status: 'pending',
+      assignedTo: 'agent-001',
+      notes: 'Verification of residential address'
+    }
+  ] as Task[]
+};

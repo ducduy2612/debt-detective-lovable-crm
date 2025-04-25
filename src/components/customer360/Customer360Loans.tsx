@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useCrm } from '@/context/CrmContext';
 import { formatDistanceToNow } from 'date-fns';
+import { getDelinquencyStatusColor } from '@/lib/adapters';
 
 interface Customer360LoansProps {
   customerId: string;
@@ -13,16 +14,6 @@ const Customer360Loans: React.FC<Customer360LoansProps> = ({ customerId }) => {
   const { loans } = useCrm();
   const customerLoans = loans.filter(loan => loan.customerId === customerId);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'current': return 'bg-green-500';
-      case 'overdue': return 'bg-yellow-500';
-      case 'default': return 'bg-red-500';
-      case 'legal notice': return 'bg-purple-500';
-      default: return 'bg-gray-500';
-    }
-  };
-
   return (
     <div className="space-y-4">
       {customerLoans.map((loan) => (
@@ -30,8 +21,8 @@ const Customer360Loans: React.FC<Customer360LoansProps> = ({ customerId }) => {
           <CardHeader>
             <div className="flex justify-between items-start">
               <CardTitle>Loan {loan.id}</CardTitle>
-              <Badge className={getStatusColor(loan.status)}>
-                {loan.status}
+              <Badge className={getDelinquencyStatusColor(loan.delinquencyStatus)}>
+                {loan.delinquencyStatus}
               </Badge>
             </div>
           </CardHeader>
@@ -47,11 +38,11 @@ const Customer360Loans: React.FC<Customer360LoansProps> = ({ customerId }) => {
               </div>
               <div>
                 <dt className="text-sm font-medium text-muted-foreground">Outstanding Amount</dt>
-                <dd className="text-sm">${loan.outstandingAmount.toLocaleString()}</dd>
+                <dd className="text-sm">${loan.currentBalance.toLocaleString()}</dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-muted-foreground">Created</dt>
-                <dd className="text-sm">{formatDistanceToNow(loan.createdOn, { addSuffix: true })}</dd>
+                <dd className="text-sm">{formatDistanceToNow(loan.createdAt, { addSuffix: true })}</dd>
               </div>
             </dl>
           </CardContent>

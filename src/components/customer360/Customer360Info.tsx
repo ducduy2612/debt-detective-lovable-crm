@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Customer } from '@/types/crm';
 import { Phone, Mail, MapPin, Users } from 'lucide-react';
+import { formatAddress, formatPhoneNumber } from '@/lib/adapters';
 
 interface Customer360InfoProps {
   customer: Customer;
@@ -25,15 +26,17 @@ const Customer360Info: React.FC<Customer360InfoProps> = ({ customer }) => {
                 <dt className="text-sm font-medium text-muted-foreground capitalize">
                   {phone.type}:
                 </dt>
-                <dd className="text-sm">{phone.phoneNumber}</dd>
+                <dd className="text-sm">{formatPhoneNumber(phone)}</dd>
               </div>
             ))}
-            {customer.email && (
-              <div className="flex justify-between">
-                <dt className="text-sm font-medium text-muted-foreground">Email:</dt>
-                <dd className="text-sm">{customer.email}</dd>
+            {customer.emails.map((email, index) => (
+              <div key={index} className="flex justify-between">
+                <dt className="text-sm font-medium text-muted-foreground">
+                  {email.isPrimary ? "Primary Email:" : "Email:"}
+                </dt>
+                <dd className="text-sm">{email.address}</dd>
               </div>
-            )}
+            ))}
           </dl>
         </CardContent>
       </Card>
@@ -53,7 +56,7 @@ const Customer360Info: React.FC<Customer360InfoProps> = ({ customer }) => {
                   {address.type} Address:
                 </dt>
                 <dd className="text-sm">
-                  {address.address}, {address.city}, {address.state} {address.zipCode}
+                  {formatAddress(address)}
                 </dd>
               </div>
             ))}
@@ -61,34 +64,46 @@ const Customer360Info: React.FC<Customer360InfoProps> = ({ customer }) => {
         </CardContent>
       </Card>
 
-      {customer.references.length > 0 && (
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              References
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
-              {customer.references.map((reference) => (
-                <div key={reference.id} className="space-y-2 p-4 border rounded-lg">
-                  <div className="font-medium">{reference.name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    Relationship: {reference.relationship}
-                  </div>
-                  <div className="text-sm">
-                    Phone: {reference.phoneNumbers.join(', ')}
-                  </div>
-                  {reference.email && (
-                    <div className="text-sm">Email: {reference.email}</div>
-                  )}
-                </div>
-              ))}
+      <Card className="md:col-span-2">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Customer Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <dl className="grid gap-4 md:grid-cols-2">
+            <div>
+              <dt className="text-sm font-medium text-muted-foreground">Customer ID</dt>
+              <dd className="text-sm">{customer.cif}</dd>
             </div>
-          </CardContent>
-        </Card>
-      )}
+            <div>
+              <dt className="text-sm font-medium text-muted-foreground">Type</dt>
+              <dd className="text-sm capitalize">{customer.type.toLowerCase()}</dd>
+            </div>
+            {customer.dateOfBirth && (
+              <div>
+                <dt className="text-sm font-medium text-muted-foreground">Date of Birth</dt>
+                <dd className="text-sm">{customer.dateOfBirth.toLocaleDateString()}</dd>
+              </div>
+            )}
+            {customer.nationalId && (
+              <div>
+                <dt className="text-sm font-medium text-muted-foreground">National ID</dt>
+                <dd className="text-sm">{customer.nationalId}</dd>
+              </div>
+            )}
+            <div>
+              <dt className="text-sm font-medium text-muted-foreground">Status</dt>
+              <dd className="text-sm">{customer.status}</dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-muted-foreground">Segment</dt>
+              <dd className="text-sm">{customer.segment}</dd>
+            </div>
+          </dl>
+        </CardContent>
+      </Card>
     </div>
   );
 };

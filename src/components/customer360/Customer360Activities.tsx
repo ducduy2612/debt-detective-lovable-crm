@@ -11,30 +11,41 @@ interface Customer360ActivitiesProps {
 }
 
 const Customer360Activities: React.FC<Customer360ActivitiesProps> = ({ customerId }) => {
-  const { actions, tasks } = useCrm();
+  const { loans, cases, actions, tasks } = useCrm();
   
-  const customerActions = actions.filter(action => action.customerId === customerId);
+  // Get all loans for this customer
+  const customerLoans = loans.filter(loan => loan.customerId === customerId);
+  const loanIds = customerLoans.map(loan => loan.id);
+  
+  // Get all cases for these loans
+  const customerCases = cases.filter(c => loanIds.includes(c.loanId));
+  const caseIds = customerCases.map(c => c.id);
+  
+  // Get all actions related to these cases
+  const customerActions = actions.filter(action => caseIds.includes(action.caseId));
+  
+  // Get all tasks for this customer
   const customerTasks = tasks.filter(task => task.customerId === customerId);
 
   const getActionIcon = (type: string) => {
     switch (type) {
-      case 'call': return <PhoneCall className="h-4 w-4" />;
-      case 'email': return <Mail className="h-4 w-4" />;
+      case 'CALL': return <PhoneCall className="h-4 w-4" />;
+      case 'EMAIL': return <Mail className="h-4 w-4" />;
       case 'SMS': return <MessageSquare className="h-4 w-4" />;
-      case 'visit': return <MapPin className="h-4 w-4" />;
-      case 'legal filing': return <FileText className="h-4 w-4" />;
+      case 'VISIT': return <MapPin className="h-4 w-4" />;
+      case 'LEGAL_FILING': return <FileText className="h-4 w-4" />;
       default: return <PhoneCall className="h-4 w-4" />;
     }
   };
 
   const getOutcomeColor = (outcome: string) => {
     switch (outcome) {
-      case 'successful': return 'bg-green-500';
-      case 'promise to pay': return 'bg-blue-500';
-      case 'unsuccessful': return 'bg-red-500';
-      case 'no answer': return 'bg-yellow-500';
-      case 'dispute': return 'bg-orange-500';
-      case 'cannot pay': return 'bg-purple-500';
+      case 'CONTACTED': return 'bg-green-500';
+      case 'PROMISE_TO_PAY': return 'bg-blue-500';
+      case 'NOT_CONTACTED': return 'bg-red-500';
+      case 'LEFT_MESSAGE': return 'bg-yellow-500';
+      case 'DISPUTE': return 'bg-orange-500';
+      case 'HARDSHIP_CLAIM': return 'bg-purple-500';
       default: return 'bg-gray-500';
     }
   };
@@ -53,15 +64,15 @@ const Customer360Activities: React.FC<Customer360ActivitiesProps> = ({ customerI
                 <div className="flex items-center justify-between">
                   <div className="font-medium capitalize">{action.type}</div>
                   <div className="text-sm text-muted-foreground">
-                    {format(new Date(action.date), 'MMM dd, yyyy')}
+                    {format(new Date(action.actionDate), 'MMM dd, yyyy')}
                   </div>
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  Agent: {action.agentName}
+                  Agent: {action.createdBy}
                 </div>
                 <div className="mt-1">
-                  <Badge className={getOutcomeColor(action.outcome)}>
-                    {action.outcome}
+                  <Badge className={getOutcomeColor(action.actionResult)}>
+                    {action.actionResult.replace(/_/g, ' ')}
                   </Badge>
                 </div>
                 {action.notes && (
@@ -87,7 +98,7 @@ const Customer360Activities: React.FC<Customer360ActivitiesProps> = ({ customerI
           <Card key={task.id} className="p-4">
             <div className="flex items-start gap-4">
               <div className="bg-muted p-2 rounded-md">
-                {getActionIcon(task.taskType)}
+                {getActionIcon(task.taskType.toUpperCase())}
               </div>
               <div className="flex-1">
                 <div className="flex items-center justify-between">

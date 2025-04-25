@@ -36,7 +36,7 @@ const Customer360Payments: React.FC<Customer360PaymentsProps> = ({ customerId })
     if (selectedLoanId !== 'all' && payment.loanId !== selectedLoanId) return false;
     
     if (startDate && endDate) {
-      const paymentDate = new Date(payment.date);
+      const paymentDate = new Date(payment.paymentDate);
       const filterStartDate = new Date(startDate);
       const filterEndDate = new Date(endDate);
       return paymentDate >= filterStartDate && paymentDate <= filterEndDate;
@@ -48,8 +48,8 @@ const Customer360Payments: React.FC<Customer360PaymentsProps> = ({ customerId })
   // Sort payments
   const sortedPayments = [...customerPayments].sort((a, b) => {
     if (sortBy === 'date') {
-      const dateA = new Date(a.date).getTime();
-      const dateB = new Date(b.date).getTime();
+      const dateA = new Date(a.paymentDate).getTime();
+      const dateB = new Date(b.paymentDate).getTime();
       return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
     } else {
       return sortOrder === 'asc' ? a.amount - b.amount : b.amount - a.amount;
@@ -79,9 +79,9 @@ const Customer360Payments: React.FC<Customer360PaymentsProps> = ({ customerId })
       ...sortedPayments.map(payment => [
         payment.id,
         payment.loanId,
-        format(new Date(payment.date), 'yyyy-MM-dd'),
+        format(new Date(payment.paymentDate), 'yyyy-MM-dd'),
         payment.amount,
-        payment.method,
+        payment.paymentMethod,
         payment.referenceNumber || ''
       ].join(','))
     ].join('\n');
@@ -213,12 +213,12 @@ const Customer360Payments: React.FC<Customer360PaymentsProps> = ({ customerId })
                         <TableRow key={payment.id}>
                           <TableCell className="font-medium">{payment.id}</TableCell>
                           <TableCell>{payment.loanId}</TableCell>
-                          <TableCell>{format(new Date(payment.date), 'MMM dd, yyyy')}</TableCell>
+                          <TableCell>{format(new Date(payment.paymentDate), 'MMM dd, yyyy')}</TableCell>
                           <TableCell>${payment.amount.toLocaleString()}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              {getPaymentMethodIcon(payment.method)}
-                              <span className="capitalize">{payment.method}</span>
+                              {getPaymentMethodIcon(payment.paymentMethod)}
+                              <span className="capitalize">{payment.paymentMethod}</span>
                             </div>
                           </TableCell>
                           <TableCell>{payment.referenceNumber || "-"}</TableCell>
@@ -235,7 +235,7 @@ const Customer360Payments: React.FC<Customer360PaymentsProps> = ({ customerId })
                   <div key={payment.id} className="border rounded-lg p-4 space-y-2">
                     <div className="flex justify-between items-start">
                       <span className="font-medium">Payment {payment.id}</span>
-                      <Badge variant="outline">{format(new Date(payment.date), 'MMM dd, yyyy')}</Badge>
+                      <Badge variant="outline">{format(new Date(payment.paymentDate), 'MMM dd, yyyy')}</Badge>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Loan:</span>
@@ -248,8 +248,8 @@ const Customer360Payments: React.FC<Customer360PaymentsProps> = ({ customerId })
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Method:</span>
                       <div className="flex items-center gap-2">
-                        {getPaymentMethodIcon(payment.method)}
-                        <span className="capitalize">{payment.method}</span>
+                        {getPaymentMethodIcon(payment.paymentMethod)}
+                        <span className="capitalize">{payment.paymentMethod}</span>
                       </div>
                     </div>
                     {payment.referenceNumber && (

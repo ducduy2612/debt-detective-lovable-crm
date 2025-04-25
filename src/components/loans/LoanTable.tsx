@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -11,6 +12,7 @@ import {
 import { Loan } from '@/types/crm';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
+import { getDelinquencyStatusColor } from '@/lib/adapters';
 
 interface LoanTableProps {
   loans: Loan[];
@@ -18,21 +20,6 @@ interface LoanTableProps {
 
 const LoanTable: React.FC<LoanTableProps> = ({ loans }) => {
   const navigate = useNavigate();
-  
-  const getStatusColor = (status: Loan['status']) => {
-    switch (status) {
-      case 'current':
-        return 'bg-green-500';
-      case 'overdue':
-        return 'bg-yellow-500';
-      case 'default':
-        return 'bg-red-500';
-      case 'legal notice':
-        return 'bg-purple-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
 
   const handleCustomerClick = (customerId: string) => {
     navigate(`/customers/${customerId}`);
@@ -60,14 +47,14 @@ const LoanTable: React.FC<LoanTableProps> = ({ loans }) => {
                 {loan.customerId}
               </TableCell>
               <TableCell className="capitalize">{loan.productType}</TableCell>
-              <TableCell>${loan.outstandingAmount.toLocaleString()}</TableCell>
+              <TableCell>${loan.currentBalance.toLocaleString()}</TableCell>
               <TableCell>
-                <Badge className={getStatusColor(loan.status)}>
-                  {loan.status}
+                <Badge className={getDelinquencyStatusColor(loan.delinquencyStatus)}>
+                  {loan.delinquencyStatus}
                 </Badge>
               </TableCell>
               <TableCell>
-                {formatDistanceToNow(loan.createdOn, { addSuffix: true })}
+                {formatDistanceToNow(loan.createdAt, { addSuffix: true })}
               </TableCell>
             </TableRow>
           ))}
